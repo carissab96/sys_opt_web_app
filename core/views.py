@@ -41,7 +41,8 @@ def dashboard(request):
         'profiles': OptimizationProfile.objects.filter(user=request.user),
         'alerts': SystemAlert.objects.filter(user=request.user).order_by('-timestamp')[:5],
         'user_preferences': request.user.optimization_preferences,
-        'recommendations': recommendations_summary  # Pass the summary
+        'recommendations': recommendations_summary,  # Pass the summary
+        'latest_metrics': latest_metrics
     }
     return render(request, 'core/dashboard.html', context)
 

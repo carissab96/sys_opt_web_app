@@ -1,3 +1,5 @@
+# config/settings/base.py
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -21,10 +23,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # Third party apps
-    #'debug_toolbar',
-    #'django_extensions',
     'rest_framework',
-    #'corsheaders',
+    'corsheaders',
     
     # Local apps
     'core.apps.CoreConfig',
@@ -33,8 +33,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    #'debug_toolbar.middleware.DebugToolbarMiddleware',
-    #'corsheaders.middleware.CorsMiddleware'
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -108,6 +107,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Custom user model
+AUTH_USER_MODEL = 'core.User'
+
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -120,11 +122,7 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-'''CORS_ALLOWED_ORIGINS = [
-   "http://localhost:3000",
-  "http://127.0.0.1:3000",
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
-
-CORS_ALLOW_CREDENTIALS = True
-'''
-AUTH_USER_MODEL = 'core.User'
