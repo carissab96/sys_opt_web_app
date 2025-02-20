@@ -1,0 +1,63 @@
+<!-- core/templates/core/dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>System Optimizer Dashboard</h2>
+    
+    <div class="section">
+        <h3>Latest System Metrics</h3>
+        {% for metric in metrics %}
+        <div class="metric-card">
+            <p>Time: {{ metric.timestamp }}</p>
+            <p>CPU: {{ metric.cpu_usage }}%</p>
+            <p>Memory: {{ metric.memory_usage }}%</p>
+            <p>Disk: {{ metric.disk_usage }}%</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="section">
+        <h3>Your Optimization Profiles</h3>
+        {% for profile in profiles %}
+        <div class="profile-card">
+            <h4>{{ profile.name }}</h4>
+            <p>{{ profile.description }}</p>
+            <pre>{{ profile.settings|pprint }}</pre>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="section">
+        <h3>Recent Alerts</h3>
+        {% for alert in alerts %}
+        <div class="alert-card alert-{{ alert.severity|lower }}">
+            <h4>{{ alert.title }}</h4>
+            <p>{{ alert.message }}</p>
+            <p>{{ alert.timestamp }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+<!-- Add this section to core/templates/core/dashboard.html -->
+{% if recommendations %}
+<div class="section recommendations">
+    <h3>System Optimization Recommendations</h3>
+    <div class="summary-card">
+        <p>Total Potential Improvement: {{ recommendations.potential_improvement }}</p>
+        <p>High Priority Issues: {{ recommendations.high_priority }}</p>
+    </div>
+    
+    {% for rec in recommendations.recommendations %}
+    <div class="recommendation-card {{ rec.severity }}">
+        <h4>{{ rec.title }}</h4>
+        <p>{{ rec.description }}</p>
+        <p class="suggestion">{{ rec.suggestion }}</p>
+        {% if rec.potential_gain %}
+        <p class="gain">Potential Improvement: {{ rec.potential_gain }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,33 @@
+<!-- core/templates/base.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Optimizer</title>
+    <style>
+        .dashboard { padding: 20px; }
+        .section { margin-bottom: 20px; }
+        .metric-card, .profile-card, .alert-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .alert-high { background-color: #ffe6e6; }
+        .alert-medium { background-color: #fff3e6; }
+        .alert-low { background-color: #e6ffe6; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>System Optimizer</h1>
+        {% if user.is_authenticated %}
+        <p>Welcome, {{ user.username }}</p>
+        {% endif %}
+    </header>
+    
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>
