@@ -50,7 +50,13 @@ class OptimizationProfile(models.Model):
 class OptimizationResult(models.Model):
     """Store results of optimization runs"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(OptimizationProfile, on_delete=models.CASCADE, related_name='results')
+    profile = models.ForeignKey(
+        OptimizationProfile, 
+        on_delete=models.CASCADE, 
+        related_name='results',
+        null=True,  # Make profile optional
+        blank=True
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='optimization_results')
     timestamp = models.DateTimeField(default=timezone.now)
     metrics_before = models.JSONField()
