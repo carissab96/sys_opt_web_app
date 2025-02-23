@@ -33,3 +33,17 @@ urlpatterns = [
     path('tuning/apply/', AutoTuningViewSet.as_view({'post': 'apply_tuning'}), name='tuning-apply'),
     path('tuning/visualize/', AutoTuningViewSet.as_view({'get': 'visualization_data'}), name='tuning-visualize'),
 ]
+
+
+
+
+"""
+Copyright © 2024 [Your Name/Company]
+All rights reserved.
+
+This source code is proprietary and confidential.
+Unauthorized copying, transfer, or reproduction of this file,
+via any medium, is strictly prohibited.
+
+Created: 2024-02-22 12:22:22
+"""
