@@ -57,7 +57,7 @@ class ContextManager:
         if similarity > 0.8:  # Threshold for pattern sharing
             for pattern, value in source_context.learned_patterns.items():
                 if pattern not in target_context.learned_patterns:
-                    targeYour Name/Companyt_context.learn_pattern(pattern, value)
+                    target_context.learn_pattern(pattern, value)
         
         return similarity
     
