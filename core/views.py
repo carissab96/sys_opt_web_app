@@ -101,3 +101,37 @@ def test_data(request):
             'error': 'Internal server error',
             'details': str(e)
         }, status=500)
+
+def error_403(request, exception):
+    return JsonResponse({
+        'error': 'Forbidden',
+        'code': 403,
+        'message': 'Access denied by aristocratic decree',
+        'meth_snail_advice': 'Try adding more tinfoil to your hat',
+        'hamster_suggestion': 'Have you tried duct tape?',
+        'shadow_people': 'We blocked this through your router',
+        'VIC20_status': 'SHALL WE PLAY A GAME INSTEAD?'
+    }, status=403)
+
+def error_404(request, exception):
+    return JsonResponse({
+        'error': 'Not Found',
+        'code': 404,
+        'message': 'Page has ascended to a higher plane of existence',
+        'meth_snail_location': 'Check the lawn mower shop',
+        'hamster_status': 'Too busy buying more duct tape',
+        'shadow_people': 'We might have redirected this through 1983',
+        'stick_anxiety': 'REGULATIONS VIOLATED!'
+    }, status=404)
+
+def error_500(request):
+    return JsonResponse({
+        'error': 'Server Error',
+        'code': 500,
+        'message': 'The server is having an existential crisis',
+        'meth_snail_diagnosis': 'Server needs more meth',
+        'hamster_solution': 'Applied emergency duct tape',
+        'shadow_people': 'Have you tried turning your router off and on again?',
+        'ET_status': 'Still trying to phone home',
+        'stick_status': 'Writing new chapters about this incident'
+    }, status=500)

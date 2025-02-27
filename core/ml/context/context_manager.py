@@ -2,6 +2,7 @@ from typing import Dict, Optional
 from datetime import datetime
 import logging
 from .context_model import SharedContext, PlatformContext
+#from .views import ContextManagerView
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ class ContextManager:
 
 
 """
-Copyright © 2024 [Hawkington Technologies & Innovations, 
+Copyright © 2024 Hawkington Technologies & Innovations, 
 All rights reserved.
 This source code is proprietary and confidential.
 Unauthorized copying, transfer, or reproduction of this file,

@@ -5,12 +5,17 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Debug Toolbar settings
-INSTALLED_APPS += [
-    'debug_toolbar',
-    'django_extensions',
-    'drf_yasg',  # Swagger/OpenAPI documentation
-    'rest_framework_simplejwt',  # JWT authentication
-    'authentication',  # Our distinguished authentication app
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
+    'debug_toolbar',  # Add this
+    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -43,6 +48,9 @@ INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+}
 # DRF settings
 from datetime import timedelta
 
