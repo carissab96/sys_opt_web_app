@@ -13,6 +13,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_spectacular',
     'corsheaders',
     'debug_toolbar',  # Add this
     'core.apps.CoreConfig',
@@ -28,13 +29,17 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 # CSRF Configuration - Sir Hawkington's Cross-Site Request Forgery Shield
 CSRF_COOKIE_NAME = 'csrftoken'
-CSRF_COOKIE_SECURE = True  # Only send cookie over HTTPS
-CSRF_COOKIE_HTTPONLY = True  # Not accessible via JavaScript
+CSRF_COOKIE_SECURE = False  # Only send cookie over HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Not accessible via JavaScript
 CSRF_USE_SESSIONS = True  # Store CSRF in session instead of cookie
-CSRF_COOKIE_SAMESITE = 'Strict'  # Strict SameSite policy
+CSRF_COOKIE_SAMESITE = 'Lax'  # Strict SameSite policy
 
 # Security Headers - As sturdy as Sir Hawkington's monocle
 SECURE_BROWSER_XSS_FILTER = True
@@ -55,7 +60,7 @@ DEBUG_TOOLBAR_CONFIG = {
 from datetime import timedelta
 
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -66,6 +71,12 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'System Optimizer API',
+    'DESCRIPTION': 'Making your system sing with Sir Hawkington von Monitorious III',
+    'VERSION': '1.0.0',
 }
 
 # JWT Settings - As distinguished as Sir Hawkington's pocket watch
@@ -92,14 +103,3 @@ SWAGGER_SETTINGS = {
     }
 }
 
-
-"""
-Copyright © 2024 [Your Name/Company]
-All rights reserved.
-
-This source code is proprietary and confidential.
-Unauthorized copying, transfer, or reproduction of this file,
-via any medium, is strictly prohibited.
-
-Created: 2024-02-22 12:22:22
-"""
