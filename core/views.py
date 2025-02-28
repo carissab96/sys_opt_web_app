@@ -1,108 +1,92 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
 from .models import SystemMetrics, OptimizationProfile, SystemAlert
 from .recommendations import RecommendationsEngine
-from django.http import JsonResponse
 
-@login_required
-def dashboard(request):
-    """Render the dashboard page.
-    
-    Args:
-        request: The HTTP request object
-    Returns:
-        Rendered dashboard page template
-    """
-    # Get latest metrics
-    try:
-        latest_metrics = SystemMetrics.objects.order_by('-timestamp').first()
-    except Exception as e:
-        return JsonResponse({
-            'error': 'Failed to retrieve metrics',
-            'details': str(e)
-        }, status=500)
-
-    # Initialize recommendations engine
-    engine = RecommendationsEngine()
-
-    # Get recommendations if metrics exist
-    recommendations_summary = None
-    if latest_metrics:
+class DashboardView(View):
+    @method_decorator(login_required)
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request):
         try:
-            recommendations_summary = engine.get_optimization_summary(latest_metrics)
+            latest_metrics = SystemMetrics.objects.order_by('-timestamp').first()
+            engine = RecommendationsEngine()
+            
+            recommendations_summary = None
+            if latest_metrics:
+                recommendations_summary = engine.get_optimization_summary(latest_metrics)
+
+            context = {
+                'metrics': SystemMetrics.objects.all().order_by('-timestamp')[:5],
+                'profiles': OptimizationProfile.objects.filter(user=request.user),
+                'alerts': SystemAlert.objects.filter(user=request.user).order_by('-timestamp')[:5],
+                'user_preferences': request.user.optimization_preferences,
+                'recommendations': recommendations_summary,
+                'latest_metrics': latest_metrics,
+                'csrf_token': get_token(request),  # Add CSRF token to context
+            }
+            return render(request, 'core/dashboard.html', context)
         except Exception as e:
             return JsonResponse({
-                'error': 'Failed to generate recommendations',
-                'details': str(e)
+                'error': 'Dashboard malfunction',
+                'details': str(e),
+                'meth_snail_status': 'Dashboard is having a bad trip, man',
+                'hamster_action': 'Applying dashboard-grade duct tape',
+                'stick_panic': 'DASHBOARD REGULATIONS BREACHED!'
+                 }, status=500)
+
+class HomeView(View):
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request):
+        return render(request, 'core/home.html')
+
+class TestDataView(View):
+    @method_decorator(login_required)
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request):
+        try:
+            page = int(request.GET.get('page', 1))
+            page_size = int(request.GET.get('page_size', 10))
+            
+            offset = (page - 1) * page_size
+            limit = offset + page_size
+            
+            data = {
+                'metrics': list(SystemMetrics.objects.order_by('-timestamp')[offset:limit].values()),
+                'profiles': list(OptimizationProfile.objects.select_related('user')[offset:limit].values()),
+                'alerts': list(SystemAlert.objects.order_by('-created_at')[offset:limit].values()),
+                'pagination': {
+                    'page': page,
+                    'page_size': page_size,
+                    'total_metrics': SystemMetrics.objects.count(),
+                    'total_profiles': OptimizationProfile.objects.count(),
+                    'total_alerts': SystemAlert.objects.count()
+                }
+            }
+            return JsonResponse(data, safe=False)
+            
+        except (ValueError, TypeError) as e:
+            return JsonResponse({
+                'error': 'Invalid pagination parameters',
+                'details': str(e),
+                'meth_snail_math': 'These numbers are like... not cosmic, man',
+                'hamster_suggestion': 'Try counting the duct tape rolls instead'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'error': 'Internal server error',
+                'details': str(e),
+                'meth_snail_panic': 'The data... it is everywhere man!',
+                'hamster_status': 'Running out of emergency duct tape'
             }, status=500)
 
-    context = {
-        'metrics': SystemMetrics.objects.all().order_by('-timestamp')[:5],
-        'profiles': OptimizationProfile.objects.filter(user=request.user),
-        'alerts': SystemAlert.objects.filter(user=request.user).order_by('-timestamp')[:5],
-        'user_preferences': request.user.optimization_preferences,
-        'recommendations': recommendations_summary,  # Pass the summary
-        'latest_metrics': latest_metrics
-    }
-    return render(request, 'core/dashboard.html', context)
+# core/views.py
 
-def home(request):
-    """Render the home page.
-    
-    Args:
-        request: The HTTP request object
-    Returns:
-        Rendered home page template
-    """
-    return render(request, 'core/home.html')
-
-def test_data(request):
-    """API endpoint to fetch system metrics, profiles and alerts.
-    
-    Args:
-        request: The HTTP request object
-    Returns:
-        JsonResponse containing paginated system data
-    """
-    try:
-        # Get page parameters
-        page = int(request.GET.get('page', 1))
-        page_size = int(request.GET.get('page_size', 10))
-        
-        # Calculate offset
-        offset = (page - 1) * page_size
-        limit = offset + page_size
-        
-        # Fetch data with pagination
-        data = {
-            'metrics': list(SystemMetrics.objects.order_by('-timestamp')[offset:limit].values()),
-            'profiles': list(OptimizationProfile.objects.select_related('user')[offset:limit].values()),
-            'alerts': list(SystemAlert.objects.order_by('-created_at')[offset:limit].values())
-        }
-        
-        # Add pagination metadata
-        data['pagination'] = {
-            'page': page,
-            'page_size': page_size,
-            'total_metrics': SystemMetrics.objects.count(),
-            'total_profiles': OptimizationProfile.objects.count(),
-            'total_alerts': SystemAlert.objects.count()
-        }
-        
-        return JsonResponse(data, safe=False)
-        
-    except (ValueError, TypeError) as e:
-        return JsonResponse({
-            'error': 'Invalid pagination parameters',
-            'details': str(e)
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'error': 'Internal server error',
-            'details': str(e)
-        }, status=500)
-
-def error_403(request, exception):
+def error_403(request, exception=None):
     return JsonResponse({
         'error': 'Forbidden',
         'code': 403,
@@ -113,7 +97,7 @@ def error_403(request, exception):
         'VIC20_status': 'SHALL WE PLAY A GAME INSTEAD?'
     }, status=403)
 
-def error_404(request, exception):
+def error_404(request, exception=None):
     return JsonResponse({
         'error': 'Not Found',
         'code': 404,
@@ -124,7 +108,7 @@ def error_404(request, exception):
         'stick_anxiety': 'REGULATIONS VIOLATED!'
     }, status=404)
 
-def error_500(request):
+def error_500(request, exception=None):  # Add exception parameter
     return JsonResponse({
         'error': 'Server Error',
         'code': 500,

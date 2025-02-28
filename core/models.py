@@ -8,10 +8,15 @@ import uuid
 class User(AbstractUser):
     """Extended user model for system optimization preferences"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    system_id = models.UUIDField(default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     optimization_preferences = models.JSONField(default=dict)
     is_active = models.BooleanField(default=True)
+
+    def generate_new_system_id(self):
+        self.system_id = uuid.uuid4()
+        self.save()
 
     class Meta:
         db_table = 'users'

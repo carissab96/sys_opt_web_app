@@ -21,7 +21,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-
+from core.views import error_403, error_404, error_500
 
 urlpatterns = [
     # The stick insisted on keeping admin properly formatted

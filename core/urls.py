@@ -10,6 +10,7 @@ urlpatterns = [
     path('', include('rest_framework.urls', namespace='rest_framework')),
     path('api/test-data', views.test_data, name='test-data'),
     path('dashboard', views.dashboard, name='dashboard'),
+    path('api/', include(api_urls)),
 ]
 
 if settings.DEBUG:
