@@ -115,7 +115,7 @@ def error_500(request, exception=None):  # Add exception parameter
         'message': 'The server is having an existential crisis',
         'meth_snail_diagnosis': 'Server needs more meth',
         'hamster_solution': 'Applied emergency duct tape',
-        'shadow_people': 'Have you tried turning your router off and on again?',
+        schema/swagger-ui/#/schema/schema_retrieve'shadow_people': 'Have you tried turning your router off and on again?',
         'ET_status': 'Still trying to phone home',
         'stick_status': 'Writing new chapters about this incident'
     }, status=500)

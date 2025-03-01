@@ -1,32 +1,42 @@
-from rest_framework import viewsets, permissions, status
-from ..models import SystemMetrics, OptimizationProfile, OptimizationResult, SystemAlert
-from .serializers import SystemMetricsSerializer, OptimizationProfileSerializer, OptimizationResultSerializer, SystemAlertSerializer
-from rest_framework.response import Response
+# core/api/views.py
+
+from rest_framework import viewsets, permissions, status, generics
 from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.contrib.auth import login, logout, get_user_model
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.utils.decorators import method_decorator
+from django.middleware.csrf import get_token
+from ..models import (
+    SystemMetrics, 
+    OptimizationProfile, 
+    OptimizationResult, 
+    SystemAlert,
+    UserPreferences
+)
+from .serializers import (
+    SystemMetricsSerializer,
+    OptimizationProfileSerializer,
+    OptimizationResultSerializer,
+    SystemAlertSerializer,
+    UserSerializer,
+    UserRegistrationSerializer,
+    UserPreferencesSerializer
+)
+from authentication.serializers import (
+    CustomTokenObtainPairSerializer,
+    CustomTokenRefreshSerializer
+)
+
 from core.optimization.auto_tuner import AutoTuner
 from core.optimization.web_auto_tuner import WebAutoTuner
 from asgiref.sync import async_to_sync
 from functools import wraps
 
-class SystemMetricsViewSet(viewsets.ModelViewSet):
-    queryset = SystemMetrics.objects.all()
-    serializer_class = SystemMetricsSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Sir Hawkington maintains proper security decorum
-
-class OptimizationProfileViewSet(viewsets.ModelViewSet):
-    queryset = OptimizationProfile.objects.all()
-    serializer_class = OptimizationProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Sir Hawkington maintains proper security decorum
-
-class OptimizationResultViewSet(viewsets.ModelViewSet):
-    queryset = OptimizationResult.objects.all()
-    serializer_class = OptimizationResultSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Sir Hawkington maintains proper security decorum
-
-class SystemAlertViewSet(viewsets.ModelViewSet):
-    queryset = SystemAlert.objects.all()
-    serializer_class = SystemAlertSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Sir Hawkington maintains proper security decorum
+User = get_user_model()
 
 def async_view(func):
     @wraps(func)
@@ -34,34 +44,131 @@ def async_view(func):
         return async_to_sync(func)(*args, **kwargs)
     return wrapped
 
-# core/api/views.py
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            response = super().post(request, *args, **kwargs)
+            return Response({
+                'status': 'success',
+                'message': 'Login successful! Sir Hawkington welcomes you back! 🦅',
+                'data': response.data,
+                'meth_snail_approval': 'Authentication vibes are cosmic!',
+                'hamster_status': 'Token wrapped in quantum duct tape'
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid credentials! Sir Hawkington cannot verify your papers! 📜',
+                'error': str(e),
+                'meth_snail_panic': 'Your credentials are in another dimension!',
+                'hamster_suggestion': 'Try authentication-grade duct tape'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    @method_decorator(csrf_protect)
+    def register(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        try:
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response({
+                    'status': 'success',
+                    'user_id': user.id,
+                    'system_id': user.system_id,
+                    'message': 'User created successfully! Sir Hawkington tips his hat to you! 🎩',
+                    'meth_snail_welcome': 'Welcome to the cosmic optimization realm!',
+                    'hamster_gift': 'Complimentary duct tape included'
+                })
+            return Response({
+                'error': serializer.errors,
+                'meth_snail_panic': 'Registration vibes are off, man',
+                'hamster_suggestion': 'More duct tape may be required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except (ValidationError, DjangoValidationError) as e:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid data provided! Sir Hawkington suggests a review! 📝',
+                'errors': str(e),
+                'meth_snail_advice': 'Your data needs cosmic alignment',
+                'hamster_solution': 'Try validation-grade duct tape'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                'error': str(e),
+                'meth_snail_status': 'The registration... it\'s complicated man',
+                'hamster_emergency': 'Deploying registration duct tape',
+                'stick_panic': 'NEW USER REGULATIONS BREACHED!'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'])
+    @method_decorator(csrf_protect)
+    def login(self, request):
+        try:
+            login(request)
+            return Response({
+                'status': 'success',
+                'message': 'Welcome back! Sir Hawkington adjusts his monocle in approval! 🧐',
+                'meth_snail_greeting': 'The cosmic vibes are aligned!',
+                'hamster_status': 'Login duct tape holding strong'
+            })
+        except Exception as e:
+            return Response({
+                'error': str(e),
+                'meth_snail_panic': 'Your login chakras are misaligned',
+                'hamster_suggestion': 'Try login-grade duct tape'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    @method_decorator(csrf_protect)
+    def logout(self, request):
+        logout(request)
+        return Response({
+            'status': 'success',
+            'message': 'Farewell! Sir Hawkington waves his wing goodbye 🦅',
+            'meth_snail_farewell': 'Safe travels through the quantum void',
+            'hamster_action': 'Storing duct tape for your return'
+        })
+
+class SystemMetricsViewSet(viewsets.ModelViewSet):
+    queryset = SystemMetrics.objects.all()
+    serializer_class = SystemMetricsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class OptimizationProfileViewSet(viewsets.ModelViewSet):
+    queryset = OptimizationProfile.objects.all()
+    serializer_class = OptimizationProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class OptimizationResultViewSet(viewsets.ModelViewSet):
+    queryset = OptimizationResult.objects.all()
+    serializer_class = OptimizationResultSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class SystemAlertViewSet(viewsets.ModelViewSet):
+    queryset = SystemAlert.objects.all()
+    serializer_class = SystemAlertSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class AutoTuningViewSet(viewsets.ViewSet):
-    """ViewSet for system auto-tuning operations.
-    
-    Provides endpoints for monitoring system state, getting optimization
-    recommendations, and applying tuning actions. Uses WebAutoTuner for
-    web-specific optimizations.
-    """
-    
-    permission_classes = [permissions.IsAuthenticated]  # Sir Hawkington maintains proper security decorum
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_tuner(self):
-        """Get a new instance of WebAutoTuner.
-        
-        Returns:
-            WebAutoTuner: A new tuner instance for this request
-        """
         return WebAutoTuner()
 
     @action(detail=False, methods=['get'])
     @async_view
     async def current_state(self, request):
-        """Get current system metrics and state.
-        
-        Returns:
-            Response: Current system metrics including CPU, memory, and disk usage
-        """
         try:
             tuner = self.get_tuner()
             state = await tuner._get_system_state()
@@ -80,20 +187,13 @@ class AutoTuningViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     @async_view
     async def recommendations(self, request):
-        """Get system optimization recommendations.
-        
-        Returns:
-            Response: List of tuning recommendations with confidence scores
-        """
         try:
             tuner = self.get_tuner()
-            # Get page parameters
             page = int(request.GET.get('page', 1))
             page_size = int(request.GET.get('page_size', 5))
             
             recs = await tuner._get_recommendations()
             
-            # Calculate pagination
             start_idx = (page - 1) * page_size
             end_idx = start_idx + page_size
             paginated_recs = recs[start_idx:end_idx]
@@ -121,14 +221,6 @@ class AutoTuningViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     @async_view
     async def apply_tuning(self, request):
-        """Apply a tuning recommendation.
-        
-        Args:
-            request: Request object containing tuning parameters
-            
-        Returns:
-            Response: Result of applying the tuning action
-        """
         try:
             tuner = self.get_tuner()
             if not request.data:
@@ -137,11 +229,9 @@ class AutoTuningViewSet(viewsets.ViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Add user context to the tuning data
             tuning_data = request.data.copy()
             tuning_data['user_id'] = request.user.id
-                
-            # Apply the tuning
+            
             result = await tuner._apply_tuning(tuning_data)
             if not result:
                 return Response(
@@ -149,7 +239,6 @@ class AutoTuningViewSet(viewsets.ViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Convert result to dict for response
             response_data = {
                 'id': str(result.id),
                 'timestamp': result.timestamp.isoformat(),
@@ -168,13 +257,8 @@ class AutoTuningViewSet(viewsets.ViewSet):
                 {'error': f'Error applying tuning: {str(e)}'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
+
     def list(self, request):
-        """List available auto-tuning endpoints.
-        
-        Returns:
-            Response: Dictionary of available endpoints and their URLs
-        """
         return Response({
             'endpoints': {
                 'current_state': '/api/auto-tuning/current_state/',
@@ -189,38 +273,38 @@ class AutoTuningViewSet(viewsets.ViewSet):
             'version': 'web-auto-tuner-1.0'
         })
 
-'''
-# core/api/views.py
+class UserPreferencesViewSet(viewsets.ModelViewSet):
+    serializer_class = UserPreferencesSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from core.optimization.web_auto_tuner import WebAutoTuner
-from asgiref.sync import async_to_sync
-from functools import wraps
+    def get_queryset(self):
+        return UserPreferences.objects.filter(user=self.request.user)
 
-class AutoTuningViewSet(viewsets.ViewSet):
-    @action(detail=False, methods=['get'])
-    @async_view
-    async def current_state(self, request):
-        tuner = WebAutoTuner()
-        state = await tuner._get_system_state()
-        return Response(state)
+    @action(detail=False, methods=['patch'])
+    def update_optimization_level(self, request):
+        try:
+            preferences = self.get_queryset().first()
+            level = request.data.get('optimization_level')
 
-    @action(detail=False, methods=['get'])
-    @async_view
-    async def recommendations(self, request):
-        tuner = WebAutoTuner()
-        recs = await tuner.get_tuning_recommendations()
-        return Response([tuner._tuning_to_dict(r) for r in recs])
+            if level not in ['conservative', 'balanced', 'aggressive', 'meth_snail']:
+                return Response({
+                    'error': 'Invalid optimization level',
+                    'meth_snail_advice': 'Try something more... cosmic, man',
+                    'hamster_suggestion': 'optimization-level duct tape required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            preferences.optimization_level = level
+            preferences.save()
 
-    @action(detail=False, methods=['post'])
-    @async_view
-    async def apply_tuning  (self, request):
-        tuner = WebAutoTuner()
-        result = await tuner.apply_tuning(request.data)
-        return Response({'success': result})
-        '''
-
-
-
-
+            return Response({
+                'status': 'success',
+                'message': f'Optimization level updated to {level}',
+                'meth_snail_approval': 'Your vibes are now aligned',
+                'hamster_status': 'Applying optimization-grade duct tape'
+            })
+        except Exception as e:
+            return Response({
+                'error': str(e),
+                'meth_snail_panic': 'The optimization... it\'s not flowing, man',
+                'hamster_emergency': 'Deploying emergency duct tape reserves'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 import uuid
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class User(AbstractUser):
     """Extended user model for system optimization preferences"""
@@ -13,13 +15,73 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
     optimization_preferences = models.JSONField(default=dict)
     is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
 
     def generate_new_system_id(self):
         self.system_id = uuid.uuid4()
         self.save()
 
+    def __str__(self):
+        return self.username
+
     class Meta:
         db_table = 'users'
+
+class UserProfile(models.Model):
+    LINUX = 'linux'
+    WINDOWS = 'windows'
+    MACOS = 'macos'
+    
+    OS_CHOICES = [
+        (LINUX, 'Linux'),
+        (WINDOWS, 'Windows'),
+        (MACOS, 'macOS'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    operating_system = models.CharField(max_length=20, choices=OS_CHOICES)
+    os_version = models.CharField(max_length=50)
+    linux_distro = models.CharField(max_length=50, blank=True, null=True)
+    linux_distro_version = models.CharField(max_length=50, blank=True, null=True)
+    cpu_cores = models.IntegerField(null=True, blank=True)
+    total_memory = models.IntegerField(help_text='Total RAM in MB', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile - {self.operating_system} {self.os_version}"
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+
+class UserPreferences(models.Model):
+    User = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
+    optimization_level = models.CharField(
+        max_length=20,
+        choices=[
+            ('conservative', 'Convservative'),
+            ('balanced', 'Balanced'),
+            ('aggressive', 'Aggressive'),
+        ],
+        default='balanced'
+    )
+    notification_preferences = models.JSONField(default=dict)
+    system_settings = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'User Preferences'
+
 
 class SystemMetrics(models.Model):
     """Store system performance metrics"""
