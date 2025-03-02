@@ -3,9 +3,14 @@
 import pytest
 from datetime import datetime, timedelta
 import numpy as np
-from pattern_recognition.pattern_analyzer import PatternAnalyzer
-from pattern_recognition.pattern_matcher import PatternMatcher
-from pattern_recognition.pattern_validator import PatternValidator
+from core.ml.pattern_recognition.pattern_analyzer import PatternAnalyzer
+from core.ml.pattern_recognition.pattern_matcher import PatternMatcher
+from core.ml.pattern_recognition.pattern_validator import PatternValidator
+from django.contrib.auth import get_user_model
+from django.test import Client
+from django.urls import reverse
+
+User = get_user_model()
 
 class TestPatternRecognition:
     @pytest.fixture

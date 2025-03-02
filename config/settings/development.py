@@ -4,6 +4,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = 'media/'
+MEDIAFILES_DIRS = [BASE_DIR / 'media']
+#MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Debug Toolbar settings
 INSTALLED_APPS = [
     'django.contrib.admin',

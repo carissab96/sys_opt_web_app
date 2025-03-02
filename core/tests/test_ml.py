@@ -1,6 +1,10 @@
 # test_ml.py
 from sentence_transformers import SentenceTransformer
 import torch
+from core.ml.pattern_recognition.pattern_analyzer import PatternAnalyzer
+from core.ml.pattern_recognition.pattern_matcher import PatternMatcher
+from core.ml.pattern_recognition.pattern_validator import PatternValidator
+from core.models import SystemMetrics
 
 def main():
     print("=== Sir Hawkington's Distinguished ML Tests ===")
@@ -13,14 +17,6 @@ def main():
     
     # Test 2: Transformer Test
     print("\nTesting Sentence Transformers...")
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    sentences = [
-        "This system needs optimization.",
-        "The performance could be improved."
-    ]
-
-    def test_optimization_context():
-        print("\nTesting System Optimization Context...")
     model = SentenceTransformer('all-MiniLM-L6-v2')
     
     optimization_contexts = [

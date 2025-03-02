@@ -31,7 +31,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class UserPreferencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPreferences
-        exclude = ('user',)
+        exclude = ('User',)
         read_only_fields = ('id',)
 
 class UserSerializer(serializers.ModelSerializer):
