@@ -1,19 +1,29 @@
 // src/types/auth.ts
-export interface User {
+export interface UserProfile {
+  operating_system: 'linux' | 'windows' | 'macos';
+  os_version: string;
+  linux_distro?: string;
+  linux_distro_version?: string;
+  cpu_cores?: number;
+  total_memory?: number;
+}
+
+export interface UserPreferences {
+  optimization_level: 'conservative' | 'balanced' | 'aggressive';
+  notification_preferences: Record<string, any>;
+  system_settings: Record<string, any>;
+}
+
+export interface AuthState {
+  user: null | {
     id: string;
     username: string;
-    email: string;
     profile: UserProfile;
     preferences: UserPreferences;
-    system_id: string;
-  }
-  
-  export interface AuthState {
-    user: User | null;
-    token: string | null;
-    refreshToken: string | null;
-    isAuthenticated: boolean;
-    loading: boolean;
-    error: string | null;
-  }
-  
+  };
+  token: string | null;
+  refreshToken: string | null;  // Add this
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+}

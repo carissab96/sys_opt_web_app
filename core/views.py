@@ -7,7 +7,41 @@ from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from .models import SystemMetrics, OptimizationProfile, SystemAlert
 from .recommendations import RecommendationsEngine
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_view(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username or not password:
+        return Response(
+            {'error': 'Please provide both username and password'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    user = authenticate(username=username, password=password)
+    
+    if user is not None:
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': user.id,
+                'username': user.username
+            }
+        })
+    else:
+        return Response(
+            {'error': 'Invalid credentials'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 class DashboardView(View):
     @method_decorator(login_required)
     @method_decorator(ensure_csrf_cookie)
@@ -84,7 +118,7 @@ class TestDataView(View):
                 'hamster_status': 'Running out of emergency duct tape'
             }, status=500)
 
-# core/views.py
+# core/views.pyLogin failed: Failed to execute 'json' on 'Response': Unexpected end of JSON input
 
 def error_403(request, exception=None):
     return JsonResponse({

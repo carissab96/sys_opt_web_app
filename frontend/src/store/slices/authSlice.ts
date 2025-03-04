@@ -1,5 +1,29 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { AuthState } from '../types/auth';
+//import type { AuthState } from '../../types/auth';
+import { UserProfile, UserPreferences } from '../../types/auth';
+
+interface AuthState {
+  user: null | {
+    id: string;
+    username: string;
+    profile: UserProfile;
+    preferences: UserPreferences;
+  };
+  token: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: AuthState = {
+  user: null, 
+  token: null,
+  refreshToken: null,
+  isAuthenticated: false,
+  loading: false,
+  error: null
+};
 
 export const login = createAsyncThunk(
   'auth/login',
@@ -9,7 +33,13 @@ export const login = createAsyncThunk(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
     });
-    return response.json();
+
+    if (!response.ok) {
+      const errorData = await response.json(); // Get error details
+      throw new Error(errorData.message || 'Login failed'); // Throw an error with the message
+    }
+
+    return response.json(); // Return the successful response
   }
 );
 
@@ -27,16 +57,18 @@ export const refreshToken = createAsyncThunk(
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState: {
-    user: null,
-    token: null,
-    refreshToken: null,
-    isAuthenticated: false,
-    loading: false,
-    error: null,
-  } as AuthState,
+  initialState,
   reducers: {
     logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.refreshToken = null;
+      state.isAuthenticated = false;
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
+    clearAuth: (state) => {
       state.user = null;
       state.token = null;
       state.refreshToken = null;
@@ -51,8 +83,8 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
+        state.user = action.payload.user;
         state.token = action.payload.access;
-        state.refreshToken = action.payload.refresh;
         state.isAuthenticated = true;
       })
       .addCase(login.rejected, (state, action) => {
@@ -61,3 +93,7 @@ const authSlice = createSlice({
       });
   },
 });
+
+export const { logout } = authSlice.actions;  // This exports the action creator
+export const authReducer = authSlice.reducer;  // This exports the reducer
+export default authSlice.reducer;

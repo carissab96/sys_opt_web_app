@@ -3,7 +3,7 @@ import { store } from '../store';
 import { logout, refreshToken } from '../store/slices/authSlice';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: '127.0.0.1:8000/api',
 });
 
 api.interceptors.request.use((config) => {

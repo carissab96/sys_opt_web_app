@@ -1,0 +1,68 @@
+/* UserProfile.css */
+.user-profile-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .system-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .info-group {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 15px;
+    border-radius: 8px;
+  }
+  
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .info-item label {
+    color: #a0a0a0;
+  }
+  
+  .edit-button {
+    background: #646cff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .edit-button:hover {
+    background: #747bff;
+  }
+  
+  .control-button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: rgba(100, 108, 255, 0.2);
+    border: 1px solid #646cff;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .control-button:hover {
+    background: rgba(100, 108, 255, 0.3);
+    transform: translateY(-1px);
+  }

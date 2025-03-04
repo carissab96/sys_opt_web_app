@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAppSelector } from '/store/hooks';
+import { useAppSelector } from '../store/hooks';
 
 export const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAppSelector(state => state.auth);
