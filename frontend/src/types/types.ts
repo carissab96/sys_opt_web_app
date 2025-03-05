@@ -1,0 +1,58 @@
+export interface SystemMetric {
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+  network_usage: number;
+  timestamp: string;
+}
+
+
+  export interface UserProfile {
+    id: string;
+    username: string;
+    operating_system: 'linux' | 'windows' | 'macos';
+    os_version: string;
+    linux_distro?: string;
+    linux_distro_version?: string;
+    cpu_cores?: number;
+    total_memory?: number;
+  }
+  
+  export interface UserPreferences {
+    theme: 'light' | 'dark' | 'system';
+    language: string;
+  }
+
+  export interface AuthState {
+      user: null | {
+        id: string;
+        username: string;
+        profile: UserProfile;
+        preferences: UserPreferences;
+      };
+      token: string | null;
+      refreshToken: string | null;
+      isAuthenticated: boolean;
+      loading: boolean;
+      error: string | null;
+    }
+
+    export interface Options {
+      method?: string;
+      headers?: Record<string, string>;
+      body?: any;
+      credentials?: RequestCredentials;
+    }
+    import { PayloadAction } from '@reduxjs/toolkit';
+
+export interface AuthAction extends PayloadAction{
+    headers?: Record<string, string>;
+    body?: any;
+    credentials?: RequestCredentials;
+}
+
+// types/types.ts
+export interface Options extends RequestInit {
+  headers?: Record<string, string>;
+  credentials?: RequestCredentials;
+}

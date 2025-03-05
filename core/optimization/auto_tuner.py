@@ -6,6 +6,15 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Dict, Optional
 
+from rest_framework import viewsets, permissions
+from core.models import AutoTuner
+from core.api.serializers import AutoTuningSerializer
+
+class AutoTuningViewSet(viewsets.ModelViewSet):
+    queryset = AutoTuner.objects.all()
+    serializer_class = AutoTuningSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 class TuningParameter(Enum):
     CPU_GOVERNOR = "cpu_governor"
     PROCESS_PRIORITY = "process_priority"
@@ -48,7 +57,7 @@ class AutoTuner:
 
     def apply_tuning(self, data: Dict) -> Optional[Dict]:
         """Apply a tuning action
-        
+        o
         Args:
             data: Dictionary containing tuning parameters
             
@@ -247,4 +256,4 @@ class AutoTuner:
             return recommendations[:5]  # Return top 5 most impactful recommendations
         except Exception as e:
             self.logger.error(f"Error getting tuning recommendations: {str(e)}")
-            return []
+            return []   

@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './components/Auth/Login.tsx';
 import { Dashboard } from './components/dashboard/Dashboard/Dashboard.tsx';
 import { useSelector } from 'react-redux';
-import { RootState } from './store';
+import { RootState } from './store/store.ts';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);

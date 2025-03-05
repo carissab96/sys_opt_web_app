@@ -1,4 +1,3 @@
-from django.db import models
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -163,6 +162,41 @@ class SystemAlert(models.Model):
             models.Index(fields=['timestamp']),
             models.Index(fields=['user', 'is_read']),
         ]
+class AutoTuner(models.Model):
+    """Store auto tuners"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='auto_tuners')
+    timestamp = models.DateTimeField(default=timezone.now)
+    profile = models.ForeignKey(OptimizationProfile, on_delete=models.CASCADE, related_name='auto_tuners')
+    actions_taken = models.JSONField()
+    success = models.BooleanField()
+    error_message = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'auto_tuners'
+        indexes = [
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['user', 'timestamp']),
+        ]
+
+class AutoTuningResult(models.Model):
+    """Store results of auto tuning"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='auto_tuning_results')
+    timestamp = models.DateTimeField(default=timezone.now)
+    metrics_before = models.JSONField()
+    metrics_after = models.JSONField()
+    actions_taken = models.JSONField()
+    success = models.BooleanField()
+    error_message = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'auto_tuning_results'
+        indexes = [
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['user', 'timestamp']),
+        ]
+
 
 exported_models = [
     User,
@@ -170,4 +204,6 @@ exported_models = [
     OptimizationProfile,
     OptimizationResult,
     SystemAlert,
+    AutoTuningResult,
+    AutoTuner,
 ]

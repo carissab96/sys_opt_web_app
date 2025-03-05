@@ -10,12 +10,14 @@ from django.contrib.auth import login, logout, get_user_model
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
-from ..models import (
+from core.models import (
     SystemMetrics, 
     OptimizationProfile, 
     OptimizationResult, 
     SystemAlert,
-    UserPreferences
+    UserPreferences,
+    AutoTuner,
+    AutoTuningResult  
 )
 from .serializers import (
     SystemMetricsSerializer,
@@ -24,8 +26,11 @@ from .serializers import (
     SystemAlertSerializer,
     UserSerializer,
     UserRegistrationSerializer,
-    UserPreferencesSerializer
+    UserPreferencesSerializer,
+    AutoTuningSerializer,
+    AutoTuningResultSerializer
 )
+
 from authentication.serializers import (
     CustomTokenObtainPairSerializer,
     CustomTokenRefreshSerializer
@@ -308,3 +313,10 @@ class UserPreferencesViewSet(viewsets.ModelViewSet):
                 'meth_snail_panic': 'The optimization... it\'s not flowing, man',
                 'hamster_emergency': 'Deploying emergency duct tape reserves'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+class AutoTuningResultViewSet(viewsets.ModelViewSet):
+    serializer_class = AutoTuningResultSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return AutoTuningResult.objects.filter(user=self.request.user)

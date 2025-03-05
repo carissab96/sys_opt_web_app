@@ -36,6 +36,25 @@ export interface SystemMetric {
     timestamp: string;
     message: string;
   }
+
+  export type IntervalID = NodeJS.Timeout;
+
+export interface MetricsState {
+  current: SystemMetric | null;
+  historical: SystemMetric[];
+  alerts: string[];
+  thresholds: {
+    cpu: number;
+    memory: number;
+    disk: number;
+    network: number;
+  };
+  loading: boolean;  // TypeScript needs to know this exists
+  error: string | null;  // And this too
+  lastUpdated: string | null;
+  pollingInterval: NodeJS.Timeout | null;
+}
+
   
   // Type for historical data
   export interface HistoricalMetrics {
@@ -116,4 +135,46 @@ export interface SystemMetric {
     current_value: number;
     timestamp: string;
     message: string;
+  }
+    
+  export interface AutoTunerState {
+    uuid: string;
+    user: string;
+    // profile: UserProfile;
+    // preferences: UserPreferences;
+    // optimization_profile: OptimizationProfile;
+    // optimization_results: OptimizationResult[];
+    status: string;
+    success: boolean;
+    loading: boolean;
+    error: string | null;
+    lastUpdated: string | null;
+  }
+  
+  export interface AutoTunerApiResponse {
+    uuid: string;
+    user: string;
+    // profile: UserProfile;
+    // preferences: UserPreferences;
+    // optimization_profile: OptimizationProfile;
+    // optimization_results: OptimizationResult[];
+    status: string;
+    success: boolean;
+    timestamp: string;
+  }
+
+  export interface AutoTunerAlert {
+    id: string;
+    metric_type: 'cpu' | 'memory' | 'disk' | 'network';
+    severity: AlertSeverity;
+    threshold: number;
+    current_value: number;
+    timestamp: string;
+    message: string;
+  }
+  
+  export interface AutoTunerAlertState {
+    alerts: AutoTunerAlert[];
+    loading: boolean;
+    error: string | null;
   }

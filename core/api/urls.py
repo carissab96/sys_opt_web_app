@@ -14,6 +14,7 @@ from .views import (
     OptimizationResultViewSet,
     SystemAlertViewSet,
     AutoTuningViewSet,
+    AutoTuningResultViewSet,
     UserPreferencesViewSet
 )
 
@@ -29,6 +30,7 @@ router.register(r'optimization-profile', OptimizationProfileViewSet, basename='o
 router.register(r'optimization-result', OptimizationResultViewSet, basename='optimization-result')
 router.register(r'system-alert', SystemAlertViewSet, basename='system-alert')
 router.register(r'auto-tuning', AutoTuningViewSet, basename='auto-tuning')
+router.register(r'auto-tuning-result', AutoTuningResultViewSet, basename='auto-tuning-result')
 
 urlpatterns = [
     # API Routes

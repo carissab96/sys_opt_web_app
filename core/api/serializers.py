@@ -7,7 +7,9 @@ from ..models import (
     OptimizationResult, 
     SystemAlert,
     UserPreferences,
-    UserProfile  # Make sure this is imported
+    UserProfile,
+    AutoTuner,
+    AutoTuningResult
 )
 
 User = get_user_model()
@@ -109,3 +111,14 @@ class SystemAlertSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemAlert
         fields = '__all__'
+
+class AutoTuningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AutoTuner
+        fields = '__all__'
+
+class AutoTuningResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AutoTuningResult
+        fields = '__all__'
+
