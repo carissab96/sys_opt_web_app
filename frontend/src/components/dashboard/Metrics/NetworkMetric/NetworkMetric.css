@@ -1,21 +1,16 @@
 .metric-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 20px;
-    transition: transform 0.2s;
-  }
-  
-  .metric-card:hover {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+
+  &:hover {
     transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
-  
-  .metric-value {
-    font-size: 2rem;
-    font-weight: bold;
-    margin: 1rem 0;
+
+  @media (prefers-color-scheme: dark) {
+    background: #242b42;
   }
-  
-  .chart-container {
-    height: 200px;
-    margin-top: 1rem;
-  }
+}

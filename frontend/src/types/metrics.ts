@@ -1,5 +1,5 @@
 // src/types/metrics.ts
-
+import { MetricsWebSocket } from '../utils/websocket';
 // Base metric type for individual readings
 export interface SystemMetric {
     timestamp: string;
@@ -52,10 +52,9 @@ export interface MetricsState {
   loading: boolean;  // TypeScript needs to know this exists
   error: string | null;  // And this too
   lastUpdated: string | null;
-  pollingInterval: NodeJS.Timeout | null;
+  websocketInstance: MetricsWebSocket| null;
 }
 
-  
   // Type for historical data
   export interface HistoricalMetrics {
     data: SystemMetric[];
@@ -63,17 +62,7 @@ export interface MetricsState {
     end_time: string;
     interval: number;
   }
-  
-  // State types for Redux
-  export interface MetricsState {
-    current: SystemMetric | null;
-    historical: SystemMetric[];
-    loading: boolean;
-    error: string | null;
-    lastUpdated: string | null;
-    alerts: MetricAlert[];
-    thresholds: MetricThresholds;
-  }
+
   
   // Response types from API
   export interface MetricsResponse {

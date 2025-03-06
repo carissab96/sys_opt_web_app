@@ -1,59 +1,71 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { startMetricsPolling, stopMetricsPolling } from '../../../store/slices/metricsSlice';
+// import { MetricsWebSocket } from '../../../utils/websocket';
 import './Dashboard.css';
 import { UserProfile } from '../UserProfile/UserProfile';
-import { CPUMetric } from '../Metrics/CPUMetrics/CPUMetric';
+// import { CPUMetric } from '../Metrics/CPUMetrics/CPUMetric';
 import { MemoryMetric } from '../Metrics/MemoryMetric/MemoryMetric';
 import { DiskMetric } from '../Metrics/DiskMetric/DiskMetric';
 import { NetworkMetric } from '../Metrics/NetworkMetric/NetworkMetric';
 import store from '../../../store/store';
+import { initializeWebSocket } from '../../../store/slices/metricsSlice';
 import { RootState } from '../../../store/store';
+import SystemStatus  from './systemstatus/systemstatus';
+
 
 export const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
-  // Be explicit about what we're selecting from state
-  const { loading, error, pollingInterval } = useAppSelector((state: RootState) => ({
+  const { loading, error } = useAppSelector((state:RootState) => ({
     loading: state.metrics.loading,
     error: state.metrics.error
   }));
 
-  useEffect(() => {
-    // Start polling
-    dispatch(startMetricsPolling())
-      .unwrap()
-      .catch((error) => {
-        console.error('Failed to start metrics polling:', error);
-      });
+      useEffect(() => {
+        dispatch(initializeWebSocket())
+        .unwrap()
+        .catch((error: any) => {
+          console.error('Websocket initialization fucked up:', error);
+        });
+
+        //cleanup
+        return () => {
+          const currentState = store.getState();
+          const ws = currentState.metrics.websocketInstance;
+          if (ws) {
+            ws.disconnect();
+          }
+        };
+      }, [dispatch]);
+
+  // useEffect(() => {
+  //   // Start polling
+  //   dispatch(startMetricsPolling())
+  //     .unwrap()
+  //     .catch((error) => {
+  //       console.error('Failed to start metrics polling:', error);
+  //     });
   
-    // Cleanup
-    return () => {
+  //   // Cleanup
+  //   return () => {
       
-      if (pollingInterval) {
-        dispatch(stopMetricsPolling(pollingInterval));
-      }
-    };
-  }, [dispatch]);
+  //     if (pollingInterval) {
+  //       dispatch(stopMetricsPolling(pollingInterval));
+  //     }
+  //   };
+  // }, [dispatch]);
 
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <h1>System Optimizer</h1>
-        <div className="system-status">
-          <span className={`status-dot ${loading ? 'loading' : error ? 'error' : 'active'}`}></span>
-          {loading 
-            ? 'Updating metrics and shit...' 
-            : error 
-              ? `Fuck! ${error}` 
-              : 'System Monitoring Active (and actually fucking working)'}
-        </div>
+        <SystemStatus loading={loading} error={error} />
       </header>
       <div className="dashboard-content">
         <div className="main-content">
           <UserProfile />
           
           <div className="metrics-grid">
-            <CPUMetric />
+            {/* <CPUMetric /> */}
             <MemoryMetric />
             <DiskMetric />
             <NetworkMetric />

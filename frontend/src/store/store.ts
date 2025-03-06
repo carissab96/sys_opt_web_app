@@ -4,8 +4,8 @@ import metricsReducer from './slices/metricsSlice';
 import userProfileReducer from './slices/userProfileSlice';
 import systemAlertsReducer from './slices/systemAlertsSlice';
 import autoTunerReducer from './slices/autoTunerSlice';
+import { MetricsState } from '../types/metrics';
 import xsrfMiddleware from './csrf';
-
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -22,6 +22,10 @@ const store = configureStore({
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export interface StoreState {
+  metrics: MetricsState;
+};
 
 export default store;
 

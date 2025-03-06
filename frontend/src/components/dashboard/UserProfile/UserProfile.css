@@ -1,6 +1,22 @@
 /* UserProfile.css */
+
+/* src/components/dashboard/Dashboard/Dashboard.css` */
+:root {
+  --bg-primary: #120258;
+  --bg-secondary: #242b42;
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --text-primary: #44f52d;
+  --text-secondary: #021e47;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --card-bg: #591be9;
+  --gradient-cosmic: linear-gradient(8deg, #6366f1, #8b5cf6, #e07cae);
+}
+
 .user-profile-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--gradient-cosmic);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
@@ -37,7 +53,7 @@
   }
   
   .edit-button {
-    background: #646cff;
+    background: var(--gradient-cosmic);
     border: none;
     padding: 8px 16px;
     border-radius: 4px;
@@ -55,7 +71,7 @@
     padding: 12px;
     margin-bottom: 10px;
     background: rgba(100, 108, 255, 0.2);
-    border: 1px solid #646cff;
+    border: 1px solid #060830;
     border-radius: 6px;
     color: white;
     cursor: pointer;

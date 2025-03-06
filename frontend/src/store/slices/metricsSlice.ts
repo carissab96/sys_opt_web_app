@@ -1,10 +1,9 @@
 // src/store/slices/metricsSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { SystemMetric, MetricsState } from '../../types/metrics';
-import getCsrfToken from '../csrf';
-
+import { MetricsWebSocket } from '../../utils/websocket';
 // Add this type definition
-type IntervalID = ReturnType<typeof setInterval>;
+// type IntervalID = ReturnType<typeof setInterval>;
 
 const initialState: MetricsState = {
   current: null,
@@ -14,12 +13,12 @@ const initialState: MetricsState = {
     cpu: 0,
     memory: 0,
     disk: 0,
-    network: 0
+    network: 0,
   },
   loading: false,
   error: null,
   lastUpdated: null,
-  pollingInterval: null as IntervalID | null // Add this to track the interval
+  websocketInstance: null as MetricsWebSocket | null  
 };
 
 interface MetricsApiResponse {
@@ -35,26 +34,42 @@ type MetricsFuckup =
 | "Sir Hawkington knocked over the server with his monocle"
 | "The Stick fainted from improper type definitions again";
 
+export const initializeWebSocket = createAsyncThunk(
+  'metrics/initializeWebSocket',
+  async (_, { dispatch }) => {
+      const ws = new MetricsWebSocket();
+      
+      ws.setMessageCallback((data) => {
+          if (data.type === 'metrics_update') {
+              dispatch(fetchSystemMetrics());
+          }
+      });
+
+      return ws;
+  }
+);
 export const fetchSystemMetrics = createAsyncThunk<
-MetricsApiResponse,
-void,
-{ rejectValue: string }
+  MetricsApiResponse,
+  void,
+  { rejectValue: string }
 >('metrics/fetch', async (_, { rejectWithValue }) => {
-try {
-  const response = await fetch('/api/metrics/', {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
+  try {
+    // Define headers properly
+    const options: RequestInit = {
+     method: 'GET',
+     credentials: 'include',
+     headers: {
       'Content-Type': 'application/json',
-      'X-CSRFToken': getCsrfToken(),
-    },
-  });
+     }
+    };
+
+    const response = await fetch('/api/metrics/', options);
 
   if (!response.ok) {
     throw new Error('The metrics API told us to fuck right off');
   }
 
-  return response.json();
+  return await response.json() as MetricsApiResponse;
 } catch (error: unknown) {
   const randomFuckup = Math.floor(Math.random() * 6);
   const fuckups: MetricsFuckup[] = [
@@ -78,25 +93,25 @@ try {
 }
 });
 
-export const startMetricsPolling = createAsyncThunk<
-  IntervalID,  // Specify return type
-  void,
-  { rejectValue: string }
->('metrics/startPolling', async (_, { dispatch }) => {
-  const intervalId: IntervalID = setInterval(() => {
-    dispatch(SystemMetric());
-  }, 5000);
+// export const startMetricsPolling = createAsyncThunk<
+//   IntervalID,  // Specify return type
+//   void,
+//   { rejectValue: string }
+// >('metrics/startPolling', async (_, { dispatch }) => {
+//   const intervalId: IntervalID = setInterval(() => {
+//     dispatch(fetchSystemMetrics());
+//   }, 5000);
 
-  return intervalId;
-});
+//   return intervalId;
+// });
 
-export const stopMetricsPolling = createAsyncThunk<
-  void,
-  IntervalID,  // Specify parameter type
-  { rejectValue: string }
->('metrics/stopPolling', async (intervalId) => {
-  clearInterval(intervalId);
-});
+// export const stopMetricsPolling = createAsyncThunk<
+//   void,
+//   IntervalID,  // Specify parameter type
+//   { rejectValue: string }
+// >('metrics/stopPolling', async (intervalId) => {
+//   clearInterval(intervalId);
+// });
 
 const metricsSlice = createSlice({
   name: 'metrics',
@@ -118,19 +133,19 @@ const metricsSlice = createSlice({
       cpu: 0,
       memory: 0,
       disk: 0,
-      network: 0
+      network: 0,
       };
       state.lastUpdated = null;
       }
       },
   extraReducers: (builder) => {
     builder
-      .addCase(SystemMetric.pending, (state) => {
+      .addCase(fetchSystemMetrics.pending, (state) => {  
       state.loading = true;
       state.error = null;
       })
 
-      .addCase(SystemMetric.fulfilled, (state, action) => {
+      .addCase(fetchSystemMetrics.fulfilled, (state, action) => {
       state.loading = false;
       state.current = action.payload.data;
       state.historical = [
@@ -140,17 +155,26 @@ const metricsSlice = createSlice({
       state.lastUpdated = action.payload.timestamp;
       })
 
-      .addCase(SystemMetric.rejected, (state, action) => {
+      .addCase(fetchSystemMetrics.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload || 'Failed to fetch metrics';
       })
-
-      .addCase(startMetricsPolling.fulfilled, (state: { pollingInterval: any; }, action: { payload: any; }) => {
-        state.pollingInterval = action.payload;
+      .addCase(initializeWebSocket.fulfilled, (state, action) => {
+        state.websocketInstance = action.payload;
+        state.error = null;
       })
-      .addCase(stopMetricsPolling.fulfilled, (state: { pollingInterval: null; }) => {
-        state.pollingInterval = null;
+      .addCase(initializeWebSocket.rejected, (state, action) => {
+        state.websocketInstance = null;
+        state.error = 'Websocket fucked off again: ' + action.error.message;
       });
+    }
+  });
+      // .addCase(startMetricsPolling.fulfilled, (state: { pollingInterval: any; }, action: { payload: any; }) => {
+      //   state.pollingInterval = action.payload;
+      // })
 
-      export const { startMetricsPolling, stopMetricsPolling } = metricsSlice.actions;
+      // .addCase(stopMetricsPolling.fulfilled, (state: { pollingInterval: any; }, action: { payload: any; }) => {
+      //   state.pollingInterval = action.payload; 
+      // });
+ 
 export default metricsSlice.reducer;

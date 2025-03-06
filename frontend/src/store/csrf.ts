@@ -2,13 +2,11 @@ import Cookies from 'js-cookie';
 import { Middleware } from '@reduxjs/toolkit';
 
 // Define more specific types
-interface CustomHeaders {
-  'X-CSRFToken'?: string;
-  'Content-Type'?: string;
+export interface CustomHeaders {
   [key: string]: string | undefined; // Allow for other header keys
 }
 
-interface CustomOptions extends Omit<RequestInit, 'headers'> {
+export interface CustomOptions extends Omit<RequestInit, 'headers'> {
   headers?: CustomHeaders;
   credentials?: RequestCredentials;
 }

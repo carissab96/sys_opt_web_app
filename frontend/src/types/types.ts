@@ -1,10 +1,5 @@
-export interface SystemMetric {
-  cpu_usage: number;
-  memory_usage: number;
-  disk_usage: number;
-  network_usage: number;
-  timestamp: string;
-}
+
+
 
 
   export interface UserProfile {
