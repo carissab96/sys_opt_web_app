@@ -1,32 +1,54 @@
 from .base import *
 
-DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+print("HOLY SHIT, I'M ACTUALLY BEING USED!")
 
-MEDIA_URL = 'media/'
-MEDIAFILES_DIRS = [BASE_DIR / 'media']
-#MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+print("Show me where Django touched you...")
+
+DEBUG = True  # Is this ACTUALLY True or is it lying like my ex?
+
+print(f"DEBUG is set to: {DEBUG}")
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    # Fuck it, let's go nuclear for development
+    '*'  # The universal "I don't give a fuck" wildcard
+]
+print(f"ALLOWED_HOSTS contains: {ALLOWED_HOSTS}")
 
 # Debug Toolbar settings
 INSTALLED_APPS = [
+    'daphne',
+    'core.apps.CoreConfig',
+    'authentication.apps.AuthenticationConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'drf_spectacular',
-    'corsheaders',
     'debug_toolbar',  # Add this
-    'core.apps.CoreConfig',
-]
+    'rest_framework',
+    'rest_framework_simplejwt',  # ADD THIS FUCKER
+    'corsheaders',
+    'channels',
+    'channels_redis',
+    'drf_spectacular',
 
+ 
+]
+AUTH_USER_MODEL = 'core.User'
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+}
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -38,6 +60,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+}
+CORS_ALLOW_ALL_ORIGINS = True
+
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
@@ -50,66 +77,8 @@ CSRF_COOKIE_HTTPONLY = False  # Not accessible via JavaScript
 CSRF_USE_SESSIONS = True  # Store CSRF in session instead of cookie
 CSRF_COOKIE_SAMESITE = 'Lax'  # Strict SameSite policy
 
-# Security Headers - As sturdy as Sir Hawkington's monocle
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Strict'
-
-INTERNAL_IPS = [
-    '127.0.0.1',
-]
-
-DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND":"channels.layers.InMemoryChannelLayer",
+    },
 }
-# DRF settings
-from datetime import timedelta
-
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 50,
-}
-
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'System Optimizer API',
-    'DESCRIPTION': 'Making your system sing with Sir Hawkington von Monitorious III',
-    'VERSION': '1.0.0',
-}
-
-# JWT Settings - As distinguished as Sir Hawkington's pocket watch
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-}
-
-# Swagger settings
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Basic': {
-            'type': 'basic'
-        },
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-        }
-    }
-}
-
-CORS_ALLOW_ALL_ORIGINS = True

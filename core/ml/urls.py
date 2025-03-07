@@ -8,7 +8,7 @@ from .views import (
     AdvancedPatternDetectorView,
     PatternLearnerView,
     ContextManagerView
-)
+);
 
 router = DefaultRouter()
 router.register(r'context', ContextViewSet, basename='context')

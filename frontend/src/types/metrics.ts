@@ -17,6 +17,7 @@ export interface SystemMetric {
     memory: number;
     disk: number;
     network: number;
+    timestamp?: string;
   }
   
   // Type for metric alerts
@@ -101,12 +102,12 @@ export interface MetricsState {
     timestamp: string;
   }
 
-  export interface SystemThresholds {
-    cpu: number;
-    memory: number;
-    disk: number;
-    network: number;
-  }
+  // export interface SystemThresholds {
+  //   cpu: number;
+  //   memory: number;
+  //   disk: number;
+  //   network: number;
+  // }
  
   export interface SystemAlert {
     id: string;

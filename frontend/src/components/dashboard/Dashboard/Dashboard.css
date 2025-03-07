@@ -4,30 +4,33 @@
   --bg-secondary: #242b42;
   --accent-primary: #6366f1;
   --accent-secondary: #8b5cf6;
-  --text-primary: #44f52d;
-  --text-secondary: #021e47;
+  --text-primary: #ffffff;
+  --text-secondary: #002966;
   --success: #22c55e;
   --warning: #f59e0b;
   --error: #ef4444;
   --card-bg: #591be9;
-  --gradient-cosmic: linear-gradient(8deg, #6366f1, #8b5cf6, #e07cae);
+  --gradient-cosmic: linear-gradient(23deg, #6366f1, #f53595, #5108fa, #00f5d5);
 }
 
 .dashboard-container {
   min-height: 100vh;
   padding: 2rem;
-  background: var(--bg-primary);
+  background: var(--gradient-cosmic);
   color: var(--text-primary);
-}
+  font-style: italic;
+  font-weight: 800;
+  }
 
 .dashboard-header {
-  background: linear-gradient(28deg, #130046, #605cd4, #630ce6, #41f8b2);
+  background: linear-gradient (90deg, #1a0458, #00f5d5, #e9009b, #0692f0);
   padding: 2rem;
   border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
-  border: 2px solid rgb(18, 195, 226);
+  box-shadow: 20px 20px 20px rgba(99, 102, 241, 0.2);
+  border: 3px solid rgb(18, 195, 226);
   backdrop-filter: blur(55px);
-  animation: cosmic-pulse 8s infinite;
+  
+ 
 
 
   h1 {
@@ -45,13 +48,15 @@
 }
 
 .metric-card {
-  background: var(--card-bg);
+  background: var(--accent-secondary);
   padding: 1.5rem;
   border-radius: 12px;
   border: 1px solid rgba(99, 102, 241, 0.2);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(8px);
   transition: all 0.1s ease;
+  color: var(--text-primary);
+  font-weight: 600;
 
   &:hover {
     transform: translateY(-5px);
@@ -90,6 +95,7 @@
   border: 1px solid rgba(99, 102, 241, 0.2);
   backdrop-filter: blur(90px);
   transition: all 0.8s ease;
+  box-shadow: 0 8px 30px rgba(7, 9, 94, 0.2);
 
   h2 {
     color: var(--text-secondary);
@@ -104,12 +110,13 @@
   margin-bottom: 1rem;
   border: none;
   border-radius: 8px;
-  background: var(--card-bg);
+  background: var(--gradient-cosmic);
   color: var(--text-primary);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(4px);
+  box-shadow: 0 8px 30px rgba(7, 9, 94, 0.2);
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
@@ -127,7 +134,7 @@
   border-radius: 12px;
   border: 1px solid rgba(99, 102, 241, 0.2);
   backdrop-filter: blur(8px);
-  color: var(--text-secondary);
+  color: #00f5b8;
 
   h2 {
     color: var(--text-secondary);
@@ -142,9 +149,9 @@
   }
 }
 .system-status {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(235, 3, 243, 0.6);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(178, 179, 240, 0.2);
   border-radius: 10px;
   padding: 1rem 1.5rem;
 }
@@ -175,4 +182,4 @@
 
 .metric-card, .optimization-controls, .system-alerts {
   animation: cosmic-pulse 6s infinite;
-}}
+}

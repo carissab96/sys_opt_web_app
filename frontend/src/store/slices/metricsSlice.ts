@@ -41,7 +41,7 @@ export const initializeWebSocket = createAsyncThunk(
       
       ws.setMessageCallback((data) => {
           if (data.type === 'metrics_update') {
-              dispatch(fetchSystemMetrics());
+              dispatch(data());
           }
       });
 
@@ -113,17 +113,25 @@ export const fetchSystemMetrics = createAsyncThunk<
 //   clearInterval(intervalId);
 // });
 
-const metricsSlice = createSlice({
+export const metricsSlice = createSlice({
   name: 'metrics',
   initialState,
   reducers: {
     updateMetrics: (state, action: PayloadAction<SystemMetric>) => {
+      console.log("🎭 REDUX BEFORE UPDATE:", {
+          current: state.current,
+          historicalLength: state.historical.length
+      });
+      
       state.current = action.payload;
-      state.historical = [
-      ...state.historical.slice(-19),
-      action.payload
-      ];
+      state.historical = [...state.historical.slice(-19), action.payload];
       state.lastUpdated = new Date().toISOString();
+      
+      console.log("🎭 REDUX AFTER UPDATE:", {
+          current: state.current,
+          historicalLength: state.historical.length,
+          lastUpdated: state.lastUpdated
+      });
       },
       clearMetrics: (state) => {
       state.current = null;
@@ -176,5 +184,5 @@ const metricsSlice = createSlice({
       // .addCase(stopMetricsPolling.fulfilled, (state: { pollingInterval: any; }, action: { payload: any; }) => {
       //   state.pollingInterval = action.payload; 
       // });
- 
+export const { updateMetrics, clearMetrics } = metricsSlice.actions; 
 export default metricsSlice.reducer;

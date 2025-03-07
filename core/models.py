@@ -18,6 +18,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
+        db_table = 'users'
 
     def generate_new_system_id(self):
         self.system_id = uuid.uuid4()
@@ -26,8 +27,7 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-    class Meta:
-        db_table = 'users'
+  
 
 class UserProfile(models.Model):
     LINUX = 'linux'
@@ -55,15 +55,25 @@ class UserProfile(models.Model):
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
+    """This might fail if operating_system is required"""
     if created:
-        UserProfile.objects.create(user=instance)
+        UserProfile.objects.create(
+            user=instance,
+            operating_system='linux'  # Add a default value
+        )
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
-
+    try:
+        instance.profile.save()
+    except UserProfile.DoesNotExist:
+        # Handle the case where profile doesn't exist
+        UserProfile.objects.create(
+            user=instance,
+            operating_system='linux'  # Default value
+        )
 class UserPreferences(models.Model):
-    User = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
     optimization_level = models.CharField(
         max_length=20,
         choices=[

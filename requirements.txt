@@ -1,28 +1,32 @@
 # Core dependencies
-Django==5.1.6
+Django==4.2.20
 django-cors-headers==4.7.0
 djangorestframework==3.15.2
 psycopg2-binary==2.9.10
 python-dotenv==1.0.1
+
 
 # Background tasks
 celery==5.4.0
 redis==5.2.1
 
 # Scientific computing
-numpy==2.2.3
+numpy==2.0.2
 psutil==5.9.8
 
 # Development tools
 django-debug-toolbar==4.3.0
 django-extensions==3.2.3
-ipython==8.22.1
+ipython==8.18.1
 black==24.1.1
 
 # API Documentation
 drf-yasg==1.21.7
 coreapi==2.3.3
+drf-spectacular==0.28.0
 
+# JWT Authentication
+djangorestframework-simplejwt==5.5.0
 # Celery dependencies
 amqp==5.3.1
 async-timeout==5.0.1
@@ -41,3 +45,9 @@ python-dateutil==2.9.0.post0
 six==1.17.0
 sqlparse==0.5.3
 tzdata==2025.1
+channels-redis==4.1.0
+channels==4.0.0
+uvicorn==0.34.0
+daphne==4.1.2
+websockets==15.0.1
+setuptools==69.1.0
