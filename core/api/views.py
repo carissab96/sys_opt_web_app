@@ -1,5 +1,3 @@
-# core/api/views.py
-
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,6 +8,7 @@ from django.contrib.auth import login, logout, get_user_model
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
+import logging
 from core.models import (
     SystemMetrics, 
     OptimizationProfile, 
@@ -30,12 +29,10 @@ from .serializers import (
     AutoTuningSerializer,
     AutoTuningResultSerializer
 )
-
 from authentication.serializers import (
     CustomTokenObtainPairSerializer,
     CustomTokenRefreshSerializer
 )
-
 from core.optimization.auto_tuner import AutoTuner
 from core.optimization.web_auto_tuner import WebAutoTuner
 from asgiref.sync import async_to_sync
@@ -71,6 +68,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 'meth_snail_panic': 'Your credentials are in another dimension!',
                 'hamster_suggestion': 'Try authentication-grade duct tape'
             }, status=status.HTTP_401_UNAUTHORIZED)
+
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class UserViewSet(viewsets.ModelViewSet):
@@ -144,26 +142,127 @@ class UserViewSet(viewsets.ModelViewSet):
             'meth_snail_farewell': 'Safe travels through the quantum void',
             'hamster_action': 'Storing duct tape for your return'
         })
-
 class SystemMetricsViewSet(viewsets.ModelViewSet):
-    queryset = SystemMetrics.objects.all()
     serializer_class = SystemMetricsSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        """Base queryset for metrics"""
+        return SystemMetrics.objects.all()
+
+    def list(self, request):
+        """Get latest metrics"""
+        logger.debug(f"🎯 Metrics list endpoint hit by user: {request.user}")
+        logger.debug(f"🔑 Auth header: {request.headers.get('Authorization')}")
+        
+        try:
+            # Get latest metrics
+            latest_metrics = self.get_queryset().order_by('-timestamp').first()
+            
+            if not latest_metrics:
+                logger.warning("⚠️ No metrics found in database")
+                return Response({
+                    'error': 'No metrics available',
+                    'meth_snail_panic': 'The metrics... they\'re in another dimension!',
+                    'hamster_status': 'Deploying metric-finding duct tape'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            data = {
+                'cpu': latest_metrics.cpu,
+                'memory': latest_metrics.memory,
+                'disk': latest_metrics.disk,
+                'timestamp': latest_metrics.timestamp,
+                'connection_id': latest_metrics.connection_id
+            }
+            logger.debug("✨ Successfully serialized latest metrics")
+            
+                 
+            return Response({
+                'status': 'success',
+                'data': data,
+                'meth_snail_approval': 'Metrics looking cosmic!',
+                'hamster_status': 'Metrics secured with quantum duct tape'
+            })
+
+        except Exception as e:
+            logger.error(f"💩 Error fetching metrics: {str(e)}")
+            return Response({
+                'error': str(e),
+                'meth_snail_panic': 'The metrics are having an existential crisis!',
+                'hamster_emergency': 'Emergency metric duct tape deployed'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'])
+    def historical(self, request):
+        """Get historical metrics"""
+        logger.debug(f"📊 Historical metrics requested by user: {request.user}")
+        
+        try:
+            # Get and validate limit parameter
+            try:
+                limit = int(request.query_params.get('limit', 20))
+                if limit < 1:
+                    raise ValueError("Limit must be positive")
+            except ValueError as ve:
+                logger.warning(f"⚠️ Invalid limit parameter: {str(ve)}")
+                return Response({
+                    'error': 'Invalid limit parameter',
+                    'meth_snail_concern': 'Your numbers are... non-euclidean, man',
+                    'hamster_status': 'Numerical duct tape needed'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get historical metrics
+            metrics = self.get_queryset().order_by('-timestamp')[:limit]
+            
+            if not metrics.exists():  # Use exists() for efficiency
+                logger.warning("⚠️ No historical metrics found")
+                return Response({
+                    'error': 'No historical metrics available',
+                    'meth_snail_concern': 'The past is... cloudy, man',
+                    'hamster_status': 'Time-travel duct tape required'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            historical_data = [{
+                'cpu': metric.cpu,
+                'memory': metric.memory,
+                'disk': metric.disk,
+                'timestamp': metric.timestamp,
+                'connection_id': metric.connection_id
+            } for metric in metrics]
+
+            logger.debug(f"✨ Successfully serialized {len(metrics)} historical metrics")
+            
+            return Response({
+                'status': 'success',
+                'data': historical_data,
+                'meth_snail_approval': 'Historical vibes are strong!',
+                'hamster_status': 'Timeline secured with temporal duct tape'
+            })
+
+        except Exception as e:
+            logger.error(f"💩 Error fetching historical metrics: {str(e)}")
+            return Response({
+                'error': str(e),
+                'meth_snail_panic': 'The timeline is unraveling!',
+                'hamster_emergency': 'Deploying temporal stability duct tape'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class OptimizationProfileViewSet(viewsets.ModelViewSet):
     queryset = OptimizationProfile.objects.all()
     serializer_class = OptimizationProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+
 
 class OptimizationResultViewSet(viewsets.ModelViewSet):
     queryset = OptimizationResult.objects.all()
     serializer_class = OptimizationResultSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
 class SystemAlertViewSet(viewsets.ModelViewSet):
     queryset = SystemAlert.objects.all()
     serializer_class = SystemAlertSerializer
     permission_classes = [permissions.IsAuthenticated]
+
 
 class AutoTuningViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -277,7 +376,6 @@ class AutoTuningViewSet(viewsets.ViewSet):
             },
             'version': 'web-auto-tuner-1.0'
         })
-
 class UserPreferencesViewSet(viewsets.ModelViewSet):
     serializer_class = UserPreferencesSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -313,7 +411,8 @@ class UserPreferencesViewSet(viewsets.ModelViewSet):
                 'meth_snail_panic': 'The optimization... it\'s not flowing, man',
                 'hamster_emergency': 'Deploying emergency duct tape reserves'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+
+
 class AutoTuningResultViewSet(viewsets.ModelViewSet):
     serializer_class = AutoTuningResultSerializer
     permission_classes = [permissions.IsAuthenticated]

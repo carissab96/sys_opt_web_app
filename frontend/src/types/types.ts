@@ -18,19 +18,6 @@
     language: string;
   }
 
-  export interface AuthState {
-      user: null | {
-        id: string;
-        username: string;
-        profile: UserProfile;
-        preferences: UserPreferences;
-      };
-      token: string | null;
-      refreshToken: string | null;
-      isAuthenticated: boolean;
-      loading: boolean;
-      error: string | null;
-    }
 
     export interface Options {
       method?: string;

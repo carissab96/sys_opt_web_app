@@ -6,6 +6,7 @@ import systemAlertsReducer from './slices/systemAlertsSlice';
 import autoTunerReducer from './slices/autoTunerSlice';
 import { MetricsState } from '../types/metrics';
 import xsrfMiddleware from './csrf';
+
 const store = configureStore({
   reducer: {
     auth: authReducer,

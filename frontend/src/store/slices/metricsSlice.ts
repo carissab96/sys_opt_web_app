@@ -1,7 +1,8 @@
 // src/store/slices/metricsSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { SystemMetric, MetricsState } from '../../types/metrics';
-import { MetricsWebSocket } from '../../utils/websocket';
+import { websocketService } from '../../utils/websocketService';
+
 // Add this type definition
 // type IntervalID = ReturnType<typeof setInterval>;
 
@@ -18,7 +19,7 @@ const initialState: MetricsState = {
   loading: false,
   error: null,
   lastUpdated: null,
-  websocketInstance: null as MetricsWebSocket | null  
+
 };
 
 interface MetricsApiResponse {
@@ -34,18 +35,53 @@ type MetricsFuckup =
 | "Sir Hawkington knocked over the server with his monocle"
 | "The Stick fainted from improper type definitions again";
 
+// src/store/slices/metricsSlice.ts
+
+interface WebSocketInitStatus {
+  status: 'connected' | 'failed';
+  error?: string;
+}
+interface WebSocketMessage {
+  type: string;
+  data?: SystemMetric;
+}
+
 export const initializeWebSocket = createAsyncThunk(
   'metrics/initializeWebSocket',
   async (_, { dispatch }) => {
-      const ws = new MetricsWebSocket();
+      console.log("🚀 Initializing WebSocket connection...");
       
-      ws.setMessageCallback((data) => {
-          if (data.type === 'metrics_update') {
-              dispatch(data());
-          }
-      });
+      try {
+          // Set the callback BEFORE connecting
+          websocketService.setMessageCallback((data: WebSocketMessage) => {
+              console.log("📨 WebSocket message received in callback:", data);
+              
+              if (data.type === 'metrics_update' && data.data) {
+                  console.log("📊 Dispatching metric update:", data.data);
+                  dispatch(updateMetrics(data.data));
+              } else {
+                  console.warn("⚠️ Unexpected message type:", data.type);
+              }
+          });
 
-      return ws;
+          // Then connect
+          await websocketService.connect();
+
+          // Check if connection was successful
+          if (websocketService.isConnected()) {
+              console.log("✅ WebSocket connected successfully");
+          } else {
+              console.warn("⚠️ WebSocket not connected after initialization");
+          }
+
+          return { status: 'connected' } as WebSocketInitStatus;
+      } catch (error) {
+          console.error("💩 WebSocket initialization failed:", error);
+          return {
+              status: 'failed',
+              error: error instanceof Error ? error.message : 'Unknown WebSocket fuckup'
+          } as WebSocketInitStatus;
+      }
   }
 );
 export const fetchSystemMetrics = createAsyncThunk<
@@ -54,23 +90,53 @@ export const fetchSystemMetrics = createAsyncThunk<
   { rejectValue: string }
 >('metrics/fetch', async (_, { rejectWithValue }) => {
   try {
-    // Define headers properly
-    const options: RequestInit = {
-     method: 'GET',
-     credentials: 'include',
-     headers: {
-      'Content-Type': 'application/json',
-     }
-    };
-
-    const response = await fetch('/api/metrics/', options);
-
-  if (!response.ok) {
-    throw new Error('The metrics API told us to fuck right off');
+ // Get auth token from localStorage
+ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    
+ // Get CSRF token from cookies with better error handling
+ const getCookie = (name: string): string | null => {
+  try {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+  } catch (error) {
+    console.error("🍪 Cookie retrieval fucked up:", error);
+    return null;
   }
+};
+    
+const csrfToken = getCookie('csrftoken');
 
-  return await response.json() as MetricsApiResponse;
-} catch (error: unknown) {
+console.log("🔐 Auth Check:", {
+  hasToken: !!token,
+  hasCsrf: !!csrfToken,
+  tokenPreview: token ? `${token.slice(0, 5)}...` : 'none'
+});
+
+const options: RequestInit = {
+  method: 'GET',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRFToken': csrfToken || '',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  }
+};
+
+console.log("🚀 Sending request with headers:", {
+  ...options.headers,
+  Authorization: token ? 'Bearer [REDACTED]' : 'none'
+});
+
+const response = await fetch('/api/metrics/', options);
+
+if (!response.ok) {
+  throw new Error(`API returned ${response.status}: ${response.statusText}`);
+}
+
+return await response.json() as MetricsApiResponse;
+} catch (error) {
   const randomFuckup = Math.floor(Math.random() * 6);
   const fuckups: MetricsFuckup[] = [
     "The API is having a fucking existential crisis",
@@ -93,25 +159,7 @@ export const fetchSystemMetrics = createAsyncThunk<
 }
 });
 
-// export const startMetricsPolling = createAsyncThunk<
-//   IntervalID,  // Specify return type
-//   void,
-//   { rejectValue: string }
-// >('metrics/startPolling', async (_, { dispatch }) => {
-//   const intervalId: IntervalID = setInterval(() => {
-//     dispatch(fetchSystemMetrics());
-//   }, 5000);
 
-//   return intervalId;
-// });
-
-// export const stopMetricsPolling = createAsyncThunk<
-//   void,
-//   IntervalID,  // Specify parameter type
-//   { rejectValue: string }
-// >('metrics/stopPolling', async (intervalId) => {
-//   clearInterval(intervalId);
-// });
 
 export const metricsSlice = createSlice({
   name: 'metrics',
@@ -167,22 +215,14 @@ export const metricsSlice = createSlice({
       state.loading = false;
       state.error = action.payload || 'Failed to fetch metrics';
       })
-      .addCase(initializeWebSocket.fulfilled, (state, action) => {
-        state.websocketInstance = action.payload;
+      .addCase(initializeWebSocket.fulfilled, (state, _action) => {
         state.error = null;
       })
       .addCase(initializeWebSocket.rejected, (state, action) => {
-        state.websocketInstance = null;
         state.error = 'Websocket fucked off again: ' + action.error.message;
       });
     }
   });
-      // .addCase(startMetricsPolling.fulfilled, (state: { pollingInterval: any; }, action: { payload: any; }) => {
-      //   state.pollingInterval = action.payload;
-      // })
-
-      // .addCase(stopMetricsPolling.fulfilled, (state: { pollingInterval: any; }, action: { payload: any; }) => {
-      //   state.pollingInterval = action.payload; 
-      // });
+      
 export const { updateMetrics, clearMetrics } = metricsSlice.actions; 
 export default metricsSlice.reducer;

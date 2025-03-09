@@ -33,9 +33,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',  # ADD THIS FUCKER
     'corsheaders',
+    'core',
+    'authentication',
     'channels',
     'channels_redis',
     'drf_spectacular',
+    'drf_spectacular.contrib.rest_framework',
+    'drf_yasg',
 ]
 #Custom user model
 AUTH_USER_MODEL = 'core.User'
@@ -48,6 +52,20 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+]
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+]
+
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_COOKIE_SECURE = False  # Only send cookie over HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Not accessible via JavaScript
+CSRF_USE_SESSIONS = True  # Store CSRF in session instead of cookie
+CSRF_COOKIE_SAMESITE = 'Lax'  # Strict SameSite policy
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -60,6 +78,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'config.urls'
+API_URL = '/api/'
 
 TEMPLATES = [
     {
@@ -109,10 +128,14 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 
 # Base REST framework settings
 REST_FRAMEWORK = {
+    
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -137,7 +160,10 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header'
         }
-    }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
 }
 # Base JWT settings
 SIMPLE_JWT = {

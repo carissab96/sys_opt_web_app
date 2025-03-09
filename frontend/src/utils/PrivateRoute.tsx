@@ -1,17 +1,19 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAppSelector } from '../store/hooks';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
-export const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAppSelector(state => state.auth);
-  const location = useLocation();
+interface PrivateRouteProps {
+    children: React.ReactNode;
+}
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+export const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+    if (!isAuthenticated) {
+        console.log("🚫 Access denied: Not authenticated");
+        return <Navigate to="/login" replace />;
+    }
 
-  return <>{children}</>;
+    return <>{children}</>;
 };

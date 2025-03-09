@@ -20,31 +20,52 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from core.views import error_403, error_404, error_500
 
+try:
+    schema_view = get_schema_view(
+        openapi.Info(
+            title="System Optimizer API",
+            default_version='v1',
+            description="Sir Hawkington's Distinguished API Documentation",
+            terms_of_service="https://www.hawkington.com/terms/",
+            contact=openapi.Contact(email="sir.hawkington@distinguished.com"),
+            license=openapi.License(name="BSD License"),
+        ),
+        public=True,
+        permission_classes=[permissions.AllowAny],
+      
+    )
+
+    swagger_urls = [
+        path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+        path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    ]
+except Exception as e:
+    print(f"Failed to initialize schema view: {e}")
+    swagger_urls = []
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('core.api.urls')),
+] + swagger_urls
 urlpatterns = [
     # The stick insisted on keeping admin properly formatted
     path('admin/', admin.site.urls),
-
-
-    # API Documentation
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
+    # Swagger URLs
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     # Core API paths
     path('api/', include('core.api.urls')),
 
     # ML module paths (now with correct routing!)
     path('api/ml/', include('core.ml.urls')),
     
-
-
-    # The meth snail demanded we add proper comments
-    # The hamsters used duct tape to hold these routes together
-    # The quantum shadow people are monitoring all traffic
-    # The VIC-20 is handling load balancing (God help us)
 ]
 
 # Static and media files (the stick wouldn't let us remove this)

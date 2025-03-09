@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, SystemMetrics, OptimizationProfile, OptimizationResult, SystemAlert, UserProfile, UserPreferences
+from .models import User, SystemMetrics, OptimizationProfile, OptimizationResult, SystemAlert, UserProfile, UserPreferences, AutoTuner, AutoTuningResult
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
@@ -62,4 +62,16 @@ class SystemAlertAdmin(admin.ModelAdmin):
     list_filter = ('severity', 'is_read', 'timestamp')
     search_fields = ('title', 'message')
     ordering = ('-timestamp',)
-# Register your models here.
+
+@admin.register(AutoTuner)
+class AutoTunerAdmin(admin.ModelAdmin):
+    list_display = ('timestamp', 'user', 'profile', 'success')
+    list_filter = ('success', 'timestamp')
+    ordering = ('-timestamp',)
+
+@admin.register(AutoTuningResult)
+class AutoTuningResultAdmin(admin.ModelAdmin):
+    list_display = ('timestamp', 'user', 'success')
+    list_filter = ('success', 'timestamp')
+    ordering = ('-timestamp',)
+

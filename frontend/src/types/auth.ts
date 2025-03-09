@@ -22,7 +22,7 @@ export interface AuthState {
     preferences: UserPreferences;
   };
   token: string | null;
-  refreshToken: string | null;  // Add this
+  refreshToken: string | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;

@@ -1,71 +1,87 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-// import { MetricsWebSocket } from '../../../utils/websocket';
 import './Dashboard.css';
 import { UserProfile } from '../UserProfile/UserProfile';
-// import { CPUMetric } from '../Metrics/CPUMetrics/CPUMetric';
+import { CPUMetric } from '../Metrics/CPUMetrics/CPUMetric';
 import { MemoryMetric } from '../Metrics/MemoryMetric/MemoryMetric';
 import { DiskMetric } from '../Metrics/DiskMetric/DiskMetric';
 import { NetworkMetric } from '../Metrics/NetworkMetric/NetworkMetric';
-import store from '../../../store/store';
 import { initializeWebSocket } from '../../../store/slices/metricsSlice';
-import { RootState } from '../../../store/store';
-import SystemStatus  from './systemstatus/systemstatus';
+import SystemStatus  from './SystemStatus/SystemStatus';
+import { fetchSystemMetrics } from '../../../store/slices/metricsSlice';
 
 
 export const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state:RootState) => ({
-    loading: state.metrics.loading,
-    error: state.metrics.error
-  }));
+  const wsRef = useRef<AbortController | null>(null);
+  const error = useAppSelector((state) => state.metrics.error);
+  const isLoading = useAppSelector((state) => state.metrics.loading);
+  const mountCountRef = useRef(0);
 
-      useEffect(() => {
-        dispatch(initializeWebSocket())
-        .unwrap()
-        .catch((error: any) => {
-          console.error('Websocket initialization fucked up:', error);
-        });
+  useEffect(() => {
+    mountCountRef.current += 1;
+    console.log(`🎭 Dashboard mounting... (Mount #${mountCountRef.current})`);
+    
+    if (mountCountRef.current === 2) {
+        console.log("⚠️ StrictMode second mount detected, proceeding with initialization");
+    }
 
-        //cleanup
-        return () => {
-          const currentState = store.getState();
-          const ws = currentState.metrics.websocketInstance;
-          if (ws) {
-            ws.disconnect();
-          }
-        };
-      }, [dispatch]);
+    wsRef.current = new AbortController();
+    const signal = wsRef.current.signal;
 
-  // useEffect(() => {
-  //   // Start polling
-  //   dispatch(startMetricsPolling())
-  //     .unwrap()
-  //     .catch((error) => {
-  //       console.error('Failed to start metrics polling:', error);
-  //     });
-  
-  //   // Cleanup
-  //   return () => {
-      
-  //     if (pollingInterval) {
-  //       dispatch(stopMetricsPolling(pollingInterval));
-  //     }
-  //   };
-  // }, [dispatch]);
+    const initializeWS = async () => {
+        try {
+            if (!signal.aborted) {
+                console.log("🚀 Starting WebSocket initialization...");
+                const result = await dispatch(initializeWebSocket()).unwrap();
+                
+                if (!signal.aborted && result.status === 'connected') {
+                    console.log("✨ WebSocket connected, fetching metrics...");
+                    dispatch(fetchSystemMetrics());
+                }
+            }
+        } catch (error) {
+            if (!signal.aborted) {
+                console.error("💩 WebSocket initialization fucked up:", error);
+            }
+        }
+    };
+
+    initializeWS();
+
+    return () => {
+        console.log(`🧹 Dashboard unmounting... (Mount #${mountCountRef.current})`);
+        wsRef.current?.abort();
+    };
+}, [dispatch]);
+  if (isLoading) {
+      return <div>Loading your distinguished metrics...</div>;
+  }
+
+  if (error) {
+      return (
+          <div className="error-container">
+              <h3>Well, shit...</h3>
+              <p>{error}</p>
+              <button onClick={() => dispatch(initializeWebSocket())}>
+                  Try this shit again
+              </button>
+          </div>
+      );
+  }
 
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <h1>System Optimizer</h1>
-        <SystemStatus loading={loading} error={error} />
+        <SystemStatus loading={isLoading} error={error} />
       </header>
       <div className="dashboard-content">
         <div className="main-content">
           <UserProfile />
           
           <div className="metrics-grid">
-            {/* <CPUMetric /> */}
+            <CPUMetric /> 
             <MemoryMetric />
             <DiskMetric />
             <NetworkMetric />
@@ -77,19 +93,19 @@ export const Dashboard: React.FC = () => {
             <h2>Optimization Controls</h2>
             <button 
               className="control-button"
-              disabled={loading || !!error}
+              disabled={isLoading || !!error}
             >
               Run Optimization
             </button>
             <button 
               className="control-button"
-              disabled={loading || !!error}
+              disabled={isLoading || !!error}
             >
               Update System Profile
             </button>
             <button 
               className="control-button"
-              disabled={loading || !!error}
+              disabled={isLoading || !!error}
             >
               Configure Alerts
             </button>
