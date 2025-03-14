@@ -4,7 +4,7 @@ import { useAppSelector } from '../../../../store/hooks';
 import './NetworkMetric.css';
 
 export const NetworkMetric: React.FC = () => {
-  const metrics = useAppSelector(state => state.metrics.data);
+  const metrics = useAppSelector((state: any) => state.metrics.current);
   
   return (
     <div className="metric-card">

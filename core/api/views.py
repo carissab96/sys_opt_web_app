@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, status, generics
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
@@ -9,34 +9,6 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
 import logging
-from core.models import (
-    SystemMetrics, 
-    OptimizationProfile, 
-    OptimizationResult, 
-    SystemAlert,
-    UserPreferences,
-    AutoTuner,
-    AutoTuningResult  
-)
-from .serializers import (
-    SystemMetricsSerializer,
-    OptimizationProfileSerializer,
-    OptimizationResultSerializer,
-    SystemAlertSerializer,
-    UserSerializer,
-    UserRegistrationSerializer,
-    UserPreferencesSerializer,
-    AutoTuningSerializer,
-    AutoTuningResultSerializer
-)
-from authentication.serializers import (
-    CustomTokenObtainPairSerializer,
-    CustomTokenRefreshSerializer
-)
-from core.optimization.auto_tuner import AutoTuner
-from core.optimization.web_auto_tuner import WebAutoTuner
-from asgiref.sync import async_to_sync
-from functools import wraps
 
 User = get_user_model()
 
@@ -45,6 +17,22 @@ def async_view(func):
     def wrapped(*args, **kwargs):
         return async_to_sync(func)(*args, **kwargs)
     return wrapped
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+@ensure_csrf_cookie
+def health_check(request):
+    """
+    A simple health check endpoint that also sets a CSRF cookie.
+    This is useful for frontend applications to check if the backend is available
+    and to get a CSRF token without having to authenticate.
+    """
+    csrf_token = get_token(request)
+    return Response({
+        'status': 'ok',
+        'message': 'Backend is up and running!',
+        'csrf_token': csrf_token,
+    }, status=status.HTTP_200_OK)
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class CustomTokenObtainPairView(TokenObtainPairView):

@@ -5,7 +5,7 @@ import { useAppSelector } from '../../../../store/hooks';
 import './MemoryMetric.css';
 
 export const MemoryMetric: React.FC = () => {
-    const metrics = useAppSelector(state => state.metrics.data);
+    const metrics = useAppSelector((state: any) => state.metrics.current);
     
     return (
       <div className="metric-card">

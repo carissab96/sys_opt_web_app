@@ -15,12 +15,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-# Application definition
-INSTALLED_APPS = [
-    # Local apps
-    'core.apps.CoreConfig',
-    'authentication.apps.AuthenticationConfig',
-    'daphne',
+# Application definition - Sir Hawkington's Distinguished App Registry
+# The Meth Snail demands we check for duplicates to avoid Django's meltdowns
+def deduplicate_apps(app_list):
+    """The Hamsters' function to remove duplicate apps while preserving order"""
+    seen = set()
+    unique_apps = []
+    for app in app_list:
+        if app not in seen:
+            seen.add(app)
+            unique_apps.append(app)
+    return unique_apps
+
+# Define the apps in the distinguished order required by Sir Hawkington
+_INSTALLED_APPS = [
+    # Local apps - CORE MUST BE FIRST
+    'core.apps.CoreConfig',  # First, because it's special
+    
     # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
@@ -29,18 +40,34 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    # Authentication app
+    'authentication.apps.AuthenticationConfig',
+    
     # Third party apps - IN THE RIGHT FUCKING ORDER
-    'rest_framework',
+    'rest_framework',  # The Quantum Shadow People insist this comes first
     'rest_framework_simplejwt',  # ADD THIS FUCKER
     'corsheaders',
-    'core',
-    'authentication',
-    'channels',
-    'channels_redis',
+    'daphne',  # Before channels or shit breaks
+    'channels',  # After daphne or it throws a fit
     'drf_spectacular',
     'drf_spectacular.contrib.rest_framework',
     'drf_yasg',
 ]
+
+# Sir Hawkington's Distinguished App Registry Cleaner
+# This ensures no duplicate entries in INSTALLED_APPS
+# The Hamsters manually check for duplicates to avoid Django's meltdowns
+seen_apps = set()
+INSTALLED_APPS = []
+
+# The Meth Snail meticulously checks each app
+for app in _INSTALLED_APPS:
+    app_label = app.split('.')[-1] if '.' in app else app
+    if app_label not in seen_apps:
+        seen_apps.add(app_label)
+        INSTALLED_APPS.append(app)
+    else:
+        print(f"🧐 Sir Hawkington gasps: 'Good heavens! A duplicate {app_label} entry! The Meth Snail is removing it...'")
 #Custom user model
 AUTH_USER_MODEL = 'core.User'
 
@@ -52,23 +79,58 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-]
-CORS_ALLOW_CREDENTIALS = True
+# CORS Settings - Critical for frontend communication (Sir Hawkington insists)
+CORS_ALLOW_ALL_ORIGINS = True  # The Meth Snail demands maximum accessibility
+CORS_ORIGIN_ALLOW_ALL = True   # The Stick reluctantly agrees
+CORS_ALLOW_CREDENTIALS = True  # The Hamsters require proper authentication
 
+# Fallback for specific origins if needed (with aristocratic precision)
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',  # Primary development port (The Stick's favorite)
+    'http://localhost:5174',  # Secondary port (in case of port conflicts)
+    'http://127.0.0.1:5173',  # Alternate localhost notation (for quantum shadow people)
+    'http://127.0.0.1:5174',  # The VIC-20's preferred address format
+]
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# CSRF Settings - Make sure these match frontend URLs (The Stick is watching)
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
+    'http://localhost:5173',  # Primary frontend URL
+    'http://localhost:5174',  # Secondary frontend URL
+    'http://127.0.0.1:5173',  # IP-based frontend URL
+    'http://127.0.0.1:5174',  # Secondary IP-based frontend URL
+    'http://localhost:8000',  # Backend URL (for direct access)
+    'http://127.0.0.1:8000',  # IP-based backend URL
 ]
 
 CSRF_COOKIE_NAME = 'csrftoken'
 CSRF_COOKIE_SECURE = False  # Only send cookie over HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Not accessible via JavaScript
-CSRF_USE_SESSIONS = True  # Store CSRF in session instead of cookie
+CSRF_USE_SESSIONS = False  # Store CSRF in session instead of cookie
 CSRF_COOKIE_SAMESITE = 'Lax'  # Strict SameSite policy
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -96,9 +158,22 @@ TEMPLATES = [
     },
 ]
 
+# WSGI for traditional HTTP (The Stick's comfort zone)
 WSGI_APPLICATION = 'config.wsgi.application'
 
-ASGI_APPLICATION = 'config.asgi.application'
+# ASGI for WebSockets and async (The Meth Snail's playground)
+ASGI_APPLICATION = 'config.asgi.application'  # Critical for WebSocket connections
+
+# Channel layers for websockets - The Hamsters' domain of expertise
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # Faster than a meth-addled gastropod
+        'CONFIG': {
+            'capacity': 1500,  # Sir Hawkington demands adequate capacity for distinguished messages
+        },
+    },
+}
+
 # Database
 DATABASES = {
     'default': {
@@ -126,24 +201,24 @@ X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Strict'
 
-# Base REST framework settings
-REST_FRAMEWORK = {
+# # Base REST framework settings
+# REST_FRAMEWORK = {
     
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+#     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ],
+#     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 50,
-}
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#         'rest_framework.authentication.BasicAuthentication',
+#     ],
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 50,
+# }
 # API Documentation settings
 SPECTACULAR_SETTINGS = {
     'TITLE': 'System Optimizer API',
@@ -151,7 +226,7 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
 }
 
-# Swagger settings
+# Swagger settings (Sir Hawkington's documentation standards)
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Basic': {'type': 'basic'},
@@ -161,9 +236,11 @@ SWAGGER_SETTINGS = {
             'in': 'header'
         }
     },
-    'USE_SESSION_AUTH': False,
-    'JSON_EDITOR': True,
-    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
+    'USE_SESSION_AUTH': False,  # The Meth Snail prefers token-based auth
+    'JSON_EDITOR': True,        # The VIC-20 insists on proper editing capabilities
+    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],  # All HTTP methods with distinguished support
+    'OPERATIONS_SORTER': 'alpha',  # Sir Hawkington demands alphabetical order
+    'DOC_EXPANSION': 'list',      # The Stick prefers a clean, organized view
 }
 # Base JWT settings
 SIMPLE_JWT = {

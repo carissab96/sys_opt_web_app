@@ -53,7 +53,7 @@ export interface MetricsState {
   loading: boolean;  // TypeScript needs to know this exists
   error: string | null;  // And this too
   lastUpdated: string | null;
-
+  websocketService: MetricsWebSocket | null;
 }
 
   // Type for historical data

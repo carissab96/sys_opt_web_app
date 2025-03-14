@@ -1,10 +1,10 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { MetricAlert } from '../../types/metrics';
 
 const systemAlertsSlice = createSlice({
     name: 'systemAlerts',
     initialState: {
-      alerts: [],
+      alerts: [] as MetricAlert[],
       loading: false,
       error: null
     },

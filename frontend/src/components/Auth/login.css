@@ -5,11 +5,15 @@
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  background: darkslategray;
+  background: radial-gradient(#4400ff, #00ffd5, #bf57f0, #00f815);
+  background-blend-mode: screen;
+  backdrop-filter: blur(100%);
+ 
 }
 
 .login-form {
-  background: lightslategrey;
+  background: radial-gradient(#4400ff, #00ffd5, #bf57f0, #00f815);
+  background-blend-mode: screen;
   padding: 2rem;
   border-radius: 8px;
   width: 100%;
@@ -53,7 +57,7 @@
 button {
   width: 100%;
   padding: 0.75rem;
-  background: rgb(7, 104, 104);
+  background: #f01fb180;
   color: white;
   border: solid 1px #dcebf5;
   border-radius: 4px;

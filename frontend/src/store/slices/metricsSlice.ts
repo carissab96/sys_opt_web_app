@@ -19,6 +19,7 @@ const initialState: MetricsState = {
   loading: false,
   error: null,
   lastUpdated: null,
+  websocketService: null
 
 };
 

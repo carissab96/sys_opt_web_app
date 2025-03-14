@@ -3,15 +3,37 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 import asyncio
 import psutil
+import logging
+import sys
 from datetime import datetime
+from asgiref.sync import sync_to_async
+from core.optimization.web_auto_tuner import WebAutoTuner
+
+# Configure logging to output to console
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 class MetricsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print("HOLY SHIT, SOMEONE'S TRYING TO CONNECT!")
-        print(f"🔍 Connection ID: {id(self)}")  #
-        await self.accept()
-        print("CONNECTION FUCKING ACCEPTED!")
-        asyncio.create_task(self.send_metrics())
+        logger.info("=== WEBSOCKET CONNECTION ATTEMPT DETECTED ===")
+        logger.info(f"🔍 Connection ID: {id(self)}")
+        logger.info(f"🔍 Connection Path: {self.scope['path']}")
+        logger.info(f"🔍 Connection Headers: {dict(self.scope['headers'])}")
+        
+        try:
+            await self.accept()
+            logger.info("✅ CONNECTION SUCCESSFULLY ACCEPTED!")
+            asyncio.create_task(self.send_metrics())
+        except Exception as e:
+            logger.error(f"❌ CONNECTION ACCEPTANCE FAILED: {str(e)}")
+            logger.exception("Detailed traceback:")
     async def send_metrics(self):
         print(f"📊 Starting metrics stream for connection {id(self)}")
         try:

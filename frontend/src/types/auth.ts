@@ -27,3 +27,8 @@ export interface AuthState {
   loading: boolean;
   error: string | null;
 }
+
+export interface LoginCredentials {
+  username: string;
+  password: string;
+}

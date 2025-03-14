@@ -4,7 +4,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 
 
 const initialState: AutoTunerState = {
-    uuid: '',
+    uuid: '' as string | null,
     user: '',
     // `    profile: UserProfile;
     // preferences: UserPreferences;
@@ -33,7 +33,7 @@ const autoTunerSlice = createSlice({
             state.uuid= action.payload;
         },   
         clearAutoTuner: (state) => {
-            state.uuid = null;
+            state.uuid = null; // Now properly typed to allow null
             state.loading = false;
             state.error = null;
             state.lastUpdated = null;
